@@ -1,7 +1,7 @@
 export enum ErrorCodes {
-    UnreachableCode = "UnreachableCode",
+  UnreachableCode = "UnreachableCode",
 }
 
-export const Messages: Record<ErrorCodes, string |((...args: string[])=>string)> = {
-    [ErrorCodes.UnreachableCode]: "Unreachable code.",
+export const Messages: Record<ErrorCodes, string | ((...args: string[]) => string)> = {
+  [ErrorCodes.UnreachableCode]: "Unreachable code.",
 };

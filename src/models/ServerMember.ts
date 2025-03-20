@@ -52,7 +52,7 @@ export class ServerMember extends Base {
     }
 
     const roles = this.orderedRoles;
-    
+
     if (roles.size) {
       return roles.last()?.rank ?? Infinity;
     } else {

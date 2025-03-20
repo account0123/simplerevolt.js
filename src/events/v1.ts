@@ -15,8 +15,7 @@ import type {
   User as ApiUser,
 } from "revolt-api";
 
-import { Client, Relationship, User, Server, Channel, Message, Emoji, Group, TextBasedChannel } from "..";
-import { ServerMember } from "../models/ServerMember";
+import { Client, Relationship, Server, Channel, Message, Group, TextBasedChannel } from "..";
 
 /**
  * Version 1 of the events protocol
@@ -209,11 +208,11 @@ type ServerMessage =
  * Initial synchronisation packet
  */
 type ReadyData = {
-  users: User[];
-  servers: Server[];
-  channels: Channel[];
-  members: ServerMember[];
-  emojis: Emoji[];
+  users: ApiUser[];
+  servers: ApiServer[];
+  channels: ApiChannel[];
+  members: Member[];
+  emojis: ApiEmoji[];
 };
 
 /**
@@ -222,11 +221,7 @@ type ReadyData = {
  * @param event Event
  * @param setReady Signal state change
  */
-export async function handleEvent(
-  client: Client,
-  event: ServerMessage,
-  setReady: (value: boolean)=>void
-) {
+export async function handleEvent(client: Client, event: ServerMessage, setReady: (value: boolean) => void) {
   if (client.options.debug) {
     console.debug("[S->C]", event);
   }
@@ -239,30 +234,30 @@ export async function handleEvent(
       break;
     }
     case "Ready": {
-        for (const user of event.users) {
-          const u = client.users._add(user);
+      for (const user of event.users) {
+        const u = client.users.create(user);
 
-          if (u.relationship == Relationship.User) {
-            client.user = u;
-          }
+        if (u.relationship == Relationship.User) {
+          client.user = u;
         }
+      }
 
-        for (const server of event.servers) {
-          client.servers._add(server);
-        }
+      for (const server of event.servers) {
+        client.servers.create(server);
+      }
 
-        for (const member of event.members) {
-          member.server?.members._add(member);
-        }
+      for (const member of event.members) {
+        const server = client.servers.resolve(member._id.server);
+        server && server.members.create(member);
+      }
 
-        for (const channel of event.channels) {
-          client.channels._add(channel);
-        }
+      for (const channel of event.channels) {
+        client.channels.create(channel);
+      }
 
-        for (const emoji of event.emojis) {
-          client.emojis._add(emoji);
-        }
-      
+      for (const emoji of event.emojis) {
+        client.emojis.create(emoji);
+      }
 
       if (client.options.syncUnreads) {
         await client.channelUnreads.sync();
@@ -275,19 +270,19 @@ export async function handleEvent(
     }
     case "Message": {
       if (!client.messages.cache.has(event.id)) {
-          if (event.member) {
-            event.member.server?.members._add(event.member);
-          }
+        if (event.member) {
+          event.member.server?.members._add(event.member);
+        }
 
-          if (event.user) {
-            client.users._add(event.user);
-          }
+        if (event.user) {
+          client.users._add(event.user);
+        }
 
-          client.messages._add(event);
-          const channel = client.channels.cache.get(event.channelId);
-          if (channel) {
-            channel.lastMessageId = event.id;
-          }
+        client.messages._add(event);
+        const channel = client.channels.cache.get(event.channelId);
+        if (channel) {
+          channel.lastMessageId = event.id;
+        }
       }
       break;
     }
@@ -312,29 +307,16 @@ export async function handleEvent(
       break;
     }
     case "MessageDelete": {
-      if (client.messages.cache.has(event.id)) {
-        const message = client.messages.cache.get(event.id);
-        client.emit("messageDelete", message);
-        client.messages.delete(event.id);
-      }
+      const message = client.messages._remove(event.id);
+      message && client.emit("messageDelete", message);
       break;
     }
     case "BulkMessageDelete": {
-        client.emit(
-          "messageDeleteBulk",
-          event.ids
-            .map((id) => {
-              if (client.messages.cache.has(id)) {
-                const message = client.messages.cache.get(id);
-                client.messages.delete(id);
-                return message;
-              }
-
-              return undefined;
-            })
-            .filter((x) => x),
-          client.channels.cache.get(event.channel)
-        );
+      client.emit(
+        "messageDeleteBulk",
+        event.ids.map((id) => client.messages._remove(id)).filter((x) => x) as Message[],
+        client.channels.cache.get(event.channel),
+      );
       break;
     }
     case "MessageReact": {
@@ -349,12 +331,7 @@ export async function handleEvent(
           reactions.set(event.emoji_id, new Set([event.user_id]));
         }
 
-        client.emit(
-          "messageReactionAdd",
-          message,
-          event.user_id,
-          event.emoji_id
-        );
+        client.emit("messageReactionAdd", message, event.user_id, event.emoji_id);
       }
       break;
     }
@@ -366,12 +343,7 @@ export async function handleEvent(
           set.delete(event.user_id);
         }
 
-        client.emit(
-          "messageReactionRemove",
-          message,
-          event.user_id,
-          event.emoji_id
-        );
+        client.emit("messageReactionRemove", message, event.user_id, event.emoji_id);
       }
       break;
     }
@@ -421,11 +393,8 @@ export async function handleEvent(
       break;
     }
     case "ChannelDelete": {
-      if (client.channels.cache.get(event.id)) {
-        const channel = client.channels.cache.get(event.id);
-        client.emit("channelDelete", channel);
-        client.channels.delete(event.id);
-      }
+      const channel = client.channels._remove(event.id);
+      channel && client.emit("channelDelete", channel);
       break;
     }
     case "ChannelGroupJoin": {
@@ -435,11 +404,7 @@ export async function handleEvent(
           channel.recipientIds.add(event.user);
         }
 
-        client.emit(
-          "channelGroupJoin",
-          channel,
-          await client.users.fetch(event.user)
-        );
+        client.emit("channelGroupJoin", channel, await client.users.fetch(event.user));
       }
       break;
     }
@@ -450,11 +415,7 @@ export async function handleEvent(
           channel.recipientIds.delete(event.user);
         }
 
-        client.emit(
-          "channelGroupLeave",
-          channel,
-          client.users.resolve(event.user)!
-        );
+        client.emit("channelGroupLeave", channel, client.users.resolve(event.user)!);
       }
       break;
     }
@@ -464,12 +425,8 @@ export async function handleEvent(
         if (!channel.typingIds.has(event.user)) {
           channel.typingIds.add(event.user);
         }
-
-        client.emit(
-          "channelStartTyping",
-          channel,
-          client.users.resolve(event.user)
-        );
+        const user = client.users.resolve(event.user);
+        user && client.emit("channelStartTyping", channel, user);
       }
       break;
     }
@@ -480,11 +437,7 @@ export async function handleEvent(
           channel.typingIds.delete(event.user);
         }
 
-        client.emit(
-          "channelStopTyping",
-          channel,
-          client.users.resolve(event.user)!
-        );
+        client.emit("channelStopTyping", channel, client.users.resolve(event.user)!);
       }
       break;
     }
@@ -497,10 +450,10 @@ export async function handleEvent(
     }
     case "ServerCreate": {
       if (!client.servers.cache.has(event.server._id)) {
-          client.servers._add(new Server(client, event.server));
-          for (const channel of event.channels) {
-            client.channels._add(new Channel(client, channel));
-          }
+        client.servers._add(new Server(client, event.server));
+        for (const channel of event.channels) {
+          client.channels._add(new Channel(client, channel));
+        }
       }
       break;
     }
@@ -550,8 +503,6 @@ export async function handleEvent(
         if (role) {
           const updatedRole = role.update(event.data);
           client.emit("serverRoleUpdate", server, event.role_id, updatedRole);
-        } else {
-          client.emit("serverRoleUpdate", server, event.role_id, role);
         }
       }
       break;
@@ -560,7 +511,7 @@ export async function handleEvent(
       const server = client.servers.resolve(event.id);
       if (server) {
         const role = server.roles._remove(event.role_id);
-        client.emit("serverRoleDelete", server, event.role_id, role);
+        role && client.emit("serverRoleDelete", server, event.role_id, role);
       }
       break;
     }
@@ -568,18 +519,17 @@ export async function handleEvent(
       const server = client.servers.resolve(event.id);
       const userId = event.user;
 
-      if (!server?.members.cache.has(userId)) {
+      if (server && !server?.members.cache.has(userId)) {
         await client.users.fetch(userId);
-    
         client.emit(
           "serverMemberJoin",
-          server?.members.create({
+          server.members.create({
             _id: {
               server: event.id,
               user: userId,
             },
             joined_at: new Date().toUTCString(),
-          })
+          }),
         );
       }
       break;
@@ -626,7 +576,7 @@ export async function handleEvent(
             type: "ServerDelete",
             id: event.id,
           },
-          setReady
+          setReady,
         );
 
         return;
@@ -634,7 +584,7 @@ export async function handleEvent(
 
       const server = client.servers.resolve(event.id);
       const userId = event.user;
-      const member = server?.members.resolve(userId)
+      const member = server?.members.resolve(userId);
       if (member) {
         client.emit("serverMemberLeave", member);
         server?.members._remove(userId);
@@ -685,7 +635,7 @@ export async function handleEvent(
             relationship: event.user.relationship!,
           },
         },
-        setReady
+        setReady,
       );
       break;
     }
@@ -699,7 +649,7 @@ export async function handleEvent(
             online: event.online,
           },
         },
-        setReady
+        setReady,
       );
       break;
     }
@@ -708,34 +658,34 @@ export async function handleEvent(
       break;
     }
     case "UserPlatformWipe": {
-        handleEvent(
-          client,
-          {
-            type: "BulkMessageDelete",
-            channel: "0",
-            ids: client.messages.cache
-              .filter((message) => message.user?.id == event.user_id)
-              .map((message) => message.id),
-          },
-          setReady
-        );
+      handleEvent(
+        client,
+        {
+          type: "BulkMessageDelete",
+          channel: "0",
+          ids: client.messages.cache
+            .filter((message) => message.user?.id == event.user_id)
+            .map((message) => message.id),
+        },
+        setReady,
+      );
 
-        handleEvent(
-          client,
-          {
-            type: "UserUpdate",
-            id: event.user_id,
-            data: {
-              username: `Deleted User`,
-              online: false,
-              flags: event.flags,
-              badges: 0,
-              relationship: "None",
-            },
-            clear: ["Avatar", "StatusPresence", "StatusText"],
+      handleEvent(
+        client,
+        {
+          type: "UserUpdate",
+          id: event.user_id,
+          data: {
+            username: `Deleted User`,
+            online: false,
+            flags: event.flags,
+            badges: 0,
+            relationship: "None",
           },
-          setReady
-        );
+          clear: ["Avatar", "StatusPresence", "StatusText"],
+        },
+        setReady,
+      );
 
       break;
     }
@@ -749,7 +699,7 @@ export async function handleEvent(
     case "EmojiDelete": {
       if (client.emojis.resolve(event.id)) {
         const emoji = client.emojis._remove(event.id);
-        client.emit("emojiDelete", emoji);
+        emoji && client.emit("emojiDelete", emoji);
       }
       break;
     }

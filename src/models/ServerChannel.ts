@@ -87,9 +87,9 @@ export class ServerChannel extends TextBasedChannel {
     return {
       messages: data.messages.map((message) => this.client.messages.create(message)),
       users: data.users.map((user) => this.client.users.create(user)),
-      members: data.members.map((member) =>
-        this.server ? this.server.members.create(member) : null,
-      ).filter((x) => x) as ServerMember[],
+      members: data.members
+        .map((member) => (this.server ? this.server.members.create(member) : null))
+        .filter((x) => x) as ServerMember[],
     };
   }
 
@@ -109,9 +109,9 @@ export class ServerChannel extends TextBasedChannel {
     return {
       messages: data.messages.map((message) => this.client.messages.create(message)),
       users: data.users.map((user) => this.client.users.create(user)),
-      members: data.members.map((member) =>
-        this.server ? this.server.members.create(member) : null,
-      ).filter((x) => x) as ServerMember[],
+      members: data.members
+        .map((member) => (this.server ? this.server.members.create(member) : null))
+        .filter((x) => x) as ServerMember[],
     };
   }
 

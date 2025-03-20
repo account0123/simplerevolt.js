@@ -1,71 +1,64 @@
-import { AsyncEventEmitter } from '@vladfrangu/async_event_emitter';
-import { API, Role, type DataLogin, type RevoltConfig } from 'revolt-api';
-import { EventClient, EventClientOptions } from './events/EventClient';
-import { ChannelUnreadCollection } from './collections/ChannelUnreadCollection';
-import { ChannelCollection } from './collections/ChannelCollection';
-import { ServerCollection } from './collections/ServerCollection';
-import { UserCollection } from './collections/UserCollection';
-import { Channel, Emoji, Message, Server, ServerMember, User } from './models';
-import { EmojiCollection } from './collections/EmojiCollection';
-import { MessageCollection } from './collections/MessageCollection';
-import { handleEventV1 } from './events';
+import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
+import { API, type DataLogin, type RevoltConfig } from "revolt-api";
+import { EventClient, EventClientOptions } from "./events/EventClient";
+import { ChannelUnreadCollection } from "./collections/ChannelUnreadCollection";
+import { ChannelCollection } from "./collections/ChannelCollection";
+import { ServerCollection } from "./collections/ServerCollection";
+import { UserCollection } from "./collections/UserCollection";
+import { Channel, Emoji, Message, Role, Server, ServerMember, User } from "./models";
+import { EmojiCollection } from "./collections/EmojiCollection";
+import { MessageCollection } from "./collections/MessageCollection";
+import { ConnectionState, handleEventV1 } from "./events";
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
 
-
 /**
  * Events provided by the client
  */
-export type Events = {
-  error(error: any): void;
+export interface Events {
+  error: [error: any];
 
-  connected(): void;
-  connecting(): void;
-  disconnected(): void;
-  ready(): void;
-  logout(): void;
+  connected: [];
+  connecting: [];
+  disconnected: [];
+  ready: [];
+  logout: [];
 
-  messageCreate(message: Message): void;
-  messageUpdate(message: Message, previousMessage: Message): void;
-  messageDelete(message: Message): void;
-  messageDeleteBulk(messages:Message[], channel?: Channel): void;
-  messageReactionAdd(message: Message, userId: string, emoji: string): void;
-  messageReactionRemove(message: Message, userId: string, emoji: string): void;
-  messageReactionRemoveEmoji(message: Message, emoji: string): void;
+  messageCreate: [message: Message];
+  messageUpdate: [message: Message, previousMessage: Message];
+  messageDelete: [message: Message];
+  messageDeleteBulk: [messages: Message[], channel?: Channel];
+  messageReactionAdd: [message: Message, userId: string, emoji: string];
+  messageReactionRemove: [message: Message, userId: string, emoji: string];
+  messageReactionRemoveEmoji: [message: Message, emoji: string];
 
-  channelCreate(channel: Channel): void;
-  channelUpdate(channel: Channel, previousChannel: Channel): void;
-  channelDelete(channel: Channel): void;
-  channelGroupJoin(channel: Channel, user: User): void;
-  channelGroupLeave(channel: Channel, user?: User): void;
-  channelStartTyping(channel: Channel, user?: User): void;
-  channelStopTyping(channel: Channel, user?: User): void;
-  channelAcknowledged(channel: Channel, messageId: string): void;
+  channelCreate: [channel: Channel];
+  channelUpdate: [channel: Channel, previousChannel: Channel];
+  channelDelete: [channel: Channel];
+  channelGroupJoin: [channel: Channel, user: User];
+  channelGroupLeave: [channel: Channel, user?: User];
+  channelStartTyping: [channel: Channel, user?: User];
+  channelStopTyping: [channel: Channel, user?: User];
+  channelAcknowledged: [channel: Channel, messageId: string];
 
-  serverCreate(server: Server): void;
-  serverUpdate(server: Server, previousServer: Server): void;
-  serverDelete(server: Server): void;
-  serverLeave(server:Server): void;
-  serverRoleUpdate(server: Server, roleId: string, previousRole: Role): void;
-  serverRoleDelete(server: Server, roleId: string, role: Role): void;
+  serverCreate: [server: Server];
+  serverUpdate: [server: Server, previousServer: Server];
+  serverDelete: [server: Server];
+  serverLeave: [server: Server];
+  serverRoleUpdate: [server: Server, roleId: string, previousRole: Role];
+  serverRoleDelete: [server: Server, roleId: string, role: Role];
 
-  serverMemberUpdate(
-    member: ServerMember,
-    previousMember: ServerMember
-  ): void;
-  serverMemberJoin(member: ServerMember): void;
-  serverMemberLeave(member: ServerMember): void;
+  serverMemberUpdate: [member: ServerMember, previousMember: ServerMember];
+  serverMemberJoin: [member: ServerMember];
+  serverMemberLeave: [member: ServerMember];
 
-  userUpdate(user: User, previousUser:User): void;
-  userSettingsUpdate(
-    id: string,
-    update: Record<string, [number, string]>
-  ): void;
+  userUpdate: [user: User, previousUser: User];
+  userSettingsUpdate: [id: string, update: Record<string, [number, string]>];
 
-  emojiCreate(emoji: Emoji): void;
-  emojiDelete(emoji: Emoji): void;
-};
+  emojiCreate: [emoji: Emoji];
+  emojiDelete: [emoji: Emoji];
+}
 
 /**
  * Client options object
@@ -124,9 +117,9 @@ export type ClientOptions = Partial<EventClientOptions> & {
   channelIsMuted(channel: Channel): boolean;
 };
 
-export class Client extends AsyncEventEmitter<keyof Events> {
-  
+export class Client extends AsyncEventEmitter<Events> {
   api: API;
+  #connectionFailureCount = 0;
   #reconnectTimeout: number | undefined;
   #session: Session | undefined;
   readonly channelUnreads = new ChannelUnreadCollection(this);
@@ -147,7 +140,7 @@ export class Client extends AsyncEventEmitter<keyof Events> {
     super();
 
     this.options = {
-      baseURL: 'https://api.revolt.chat',
+      baseURL: "https://api.revolt.chat",
       partials: false,
       eagerFetching: true,
       syncUnreads: false,
@@ -174,21 +167,43 @@ export class Client extends AsyncEventEmitter<keyof Events> {
     this.api = new API({
       baseURL: this.options.baseURL,
     });
-    
     const setReady = (ready: boolean) => {
       if (typeof ready != "boolean") throw new Error("ready must be a boolean");
       this.ready = ready;
-    }
+    };
     this.events = new EventClient(1, "json", this.options);
     this.events.on("error", (error) => this.emit("error", error));
 
-    this.events.on("event", (event) =>
-      handleEventV1(this, event, setReady.bind(this))
-    );
+    this.events.on("state", (state: ConnectionState) => {
+      switch (state) {
+        case ConnectionState.Connected:
+          {
+            this.servers.cache.forEach((server) => server.resetSyncStatus());
+            this.#connectionFailureCount = 0;
+            this.emit("connected");
+          }
+          break;
+        case ConnectionState.Connecting:
+          this.emit("connecting");
+          break;
+        case ConnectionState.Disconnected:
+          this.emit("disconnected");
+          if (this.options.autoReconnect) {
+            this.#reconnectTimeout = setTimeout(
+              () => this.connect(),
+              this.options.retryDelayFunction(this.#connectionFailureCount) * 1e3,
+            ) as never;
+            this.#connectionFailureCount++;
+          }
+          break;
+      }
+    });
+
+    this.events.on("event", (event) => handleEventV1(this, event, setReady.bind(this)));
   }
 
-  get sessionId() {
-    return typeof this.#session == "string" ? null : this.#session?._id;
+  get connectionFailures() {
+    return this.#connectionFailureCount;
   }
 
   /**
@@ -203,13 +218,13 @@ export class Client extends AsyncEventEmitter<keyof Events> {
   /**
    * Connect to Revolt
    */
-  connect() {
+  async connect() {
     clearTimeout(this.#reconnectTimeout);
     this.events.disconnect();
     this.ready = false;
-    this.events.connect(
+    await this.events.connect(
       this.configuration?.ws ?? "wss://ws.revolt.chat",
-      typeof this.#session == "string" ? this.#session : this.#session!.token
+      typeof this.#session == "string" ? this.#session : this.#session!.token,
     );
   }
 
@@ -258,7 +273,11 @@ export class Client extends AsyncEventEmitter<keyof Events> {
     await this.#fetchConfiguration();
     this.#session = token;
     this.#updateHeaders();
-    this.connect();
+    await this.connect();
+  }
+
+  get sessionId() {
+    return typeof this.#session == "string" ? null : this.#session?._id;
   }
 
   /**
@@ -269,17 +288,14 @@ export class Client extends AsyncEventEmitter<keyof Events> {
     this.#updateHeaders();
   }
 
-
-   /**
+  /**
    * Proxy a file through January.
    * @param url URL to proxy
    * @returns Proxied media URL
    */
-   proxyFile(url: string): string {
+  proxyFile(url: string): string {
     if (this.configuration?.features.january.enabled) {
-      return `${
-        this.configuration.features.january.url
-      }/proxy?url=${encodeURIComponent(url)}`;
+      return `${this.configuration.features.january.url}/proxy?url=${encodeURIComponent(url)}`;
     } else {
       return url;
     }

@@ -10,6 +10,8 @@ import { PermissionsBitField } from "../permissions/ops";
 import { RoleCollection } from "../collections/RoleCollection";
 
 export class Server extends Base {
+  // @ts-ignore unused
+  #synced: "partial" | "full" | null = null;
   readonly id: string;
   readonly ownerId: string;
   readonly categories = new ServerCategoryCollection(this);
@@ -53,6 +55,10 @@ export class Server extends Base {
     }
   }
 
+  resetSyncStatus() {
+    this.#synced = null;
+  }
+
   override update(data: Partial<ApiServer>) {
     if (data.name) this.name = data.name;
     if ("description" in data) this.description = data.description;
@@ -61,7 +67,11 @@ export class Server extends Base {
     if ("flags" in data) this.flags = data.flags;
     if ("discoverable" in data) this.discoverable = data.discoverable;
     if ("nsfw" in data) this.isNSFW = data.nsfw;
-    if ("roles" in data) this.roles = new RoleCollection(this, Object.entries(data.roles).map(([id, role]) => new Role(this, { id, ...role})));
+    if ("roles" in data)
+      this.roles = new RoleCollection(
+        this,
+        Object.entries(data.roles).map(([id, role]) => new Role(this, { id, ...role })),
+      );
 
     for (const channelId of data.channels || []) {
       const channel = this.client.channels.resolve(channelId);

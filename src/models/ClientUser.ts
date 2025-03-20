@@ -15,10 +15,10 @@ export class ClientUser extends User {
    */
   async setUsername(username: string, password: string) {
     const body: DataChangeUsername = {
-        username,
-        password,
+      username,
+      password,
     };
-    
+
     const result = await this.client.api.patch("/users/@me/username", body);
     return this.client.users.create(result);
   }

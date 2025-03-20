@@ -4,6 +4,7 @@ import { AvailableProtocols, EventProtocol } from ".";
 import { ServerEventType } from "./v1";
 import { RJSError } from "../errors/RJSError";
 import { ErrorCodes } from "../errors/ErrorCodes";
+import { once } from "events";
 
 export enum ConnectionState {
   Idle = "Idle",
@@ -45,15 +46,15 @@ export interface EventClientOptions {
  * Events provided by the client.
  */
 type Events<T extends AvailableProtocols, P extends EventProtocol<T>> = {
-  error: (error: Error) => void;
-  event: (event: P["server"]) => void;
-  state: (state: ConnectionState) => void;
+  error: [error: Error];
+  event: [event: P["server"]];
+  state: [state: ConnectionState];
 };
 
 /**
  * Simple wrapper around the Revolt websocket service.
  */
-export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter<keyof Events<T, EventProtocol<T>>> {
+export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter<Events<T, EventProtocol<T>>> {
   readonly options: EventClientOptions;
 
   #lastError: { type: "socket"; data: any } | { type: "revolt"; data: Error } | undefined;
@@ -64,7 +65,6 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
   #heartbeatIntervalReference: number | undefined;
   #pongTimeoutReference: number | undefined;
   #connectTimeoutReference: number | undefined;
-
   private ping: number = -1;
   private state: ConnectionState = ConnectionState.Idle;
 
@@ -92,10 +92,18 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
    * @param uri WebSocket URI
    * @param token Authentication token
    */
-  connect(uri: string, token: string) {
+  async connect(uri: string, token: string) {
+    this.options.debug && console.debug("EventClient.connect", uri, token);
     this.disconnect();
+
     this.#lastError = undefined;
     this.state = ConnectionState.Connecting;
+
+    const controller = new AbortController();
+
+    const closeHandler = () => {
+      controller.abort();
+    };
 
     this.#connectTimeoutReference = setTimeout(() => this.disconnect(), this.options.pongTimeout * 1e3) as never;
 
@@ -112,6 +120,7 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
 
     this.#socket.onerror = (error) => {
       this.#lastError = { type: "socket", data: error };
+      closeHandler();
       this.emit("error", error as never);
     };
 
@@ -131,8 +140,21 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
       closed = true;
       this.#socket = undefined;
       this.state = ConnectionState.Disconnected;
+      closeHandler();
       this.disconnect();
     };
+
+    try {
+      await Promise.race([once(this, ConnectionState.Disconnected, { signal: controller.signal })]);
+      this.options.debug && console.debug("ConnectionState resolved");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      if (!controller.signal.aborted) {
+        this.options.debug && console.debug("Aborting connection");
+        controller.abort();
+      }
+    }
   }
 
   /**
@@ -171,7 +193,7 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
           type: "revolt",
           data: event.data,
         };
-        this.emit("error", event);
+        this.emit("error", event.data);
         this.disconnect();
         return;
     }

@@ -2,40 +2,42 @@ import { File as ApiFile } from "revolt-api";
 import type { Client } from "..";
 
 export enum FileType {
-    Audio = "Audio",
-    File = "File",
-    Image = "Image",
-    Text = "Text",
-    Video = "Video",
+  Audio = "Audio",
+  File = "File",
+  Image = "Image",
+  Text = "Text",
+  Video = "Video",
 }
 
 interface Metadata {
-    type: FileType;
-    width?: number;
-    height?: number;
+  type: FileType;
+  width?: number;
+  height?: number;
 }
 
 export class AutumnFile {
-    
-    readonly contentType: string;
-    readonly deleted: boolean;
-    readonly filename: string;
-    readonly id: string;
-    readonly metadata: Metadata;
-    readonly size: number;
-    readonly tag: string;
-    
-    constructor(readonly client: Client, data: ApiFile) {
-        this.id = data._id;
-        this.metadata  = data.metadata as Metadata;
-        this.contentType = data.content_type;
-        this.filename = data.filename;
-        this.size = data.size;
-        this.tag = data.tag;
-        this.deleted = data.deleted || false;
-    }
+  readonly contentType: string;
+  readonly deleted: boolean;
+  readonly filename: string;
+  readonly id: string;
+  readonly metadata: Metadata;
+  readonly size: number;
+  readonly tag: string;
 
-    /**
+  constructor(
+    readonly client: Client,
+    data: ApiFile,
+  ) {
+    this.id = data._id;
+    this.metadata = data.metadata as Metadata;
+    this.contentType = data.content_type;
+    this.filename = data.filename;
+    this.size = data.size;
+    this.tag = data.tag;
+    this.deleted = data.deleted || false;
+  }
+
+  /**
    * Human readable file size
    */
   get humanReadableSize() {

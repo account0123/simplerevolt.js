@@ -1,14 +1,17 @@
 {
   "name": "simplerevolt.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Javascript library for interacting to Revolt API",
-  "main": "src/index.js",
+  "main": "lib/cjs/index.js",
+  "module": "lib/esm/index.js",
+  "types": "lib/esm/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "pnpm run build:esm && pnpm run build:cjs",
-    "build:esm": "tsc",
+    "build:esm": "tsc && cp package-esm.json lib/esm/package.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "check": "pnpm prettier --check src/",
-    "lint": "pnpm prettier --write src/"
+    "format": "pnpm prettier --write src/"
   },
   "keywords": [],
   "author": "Ian P <ianparra200@gmail.com>",

@@ -96,7 +96,7 @@ export class User extends Base {
           (channel instanceof Group && channel.recipientIds.has(this.id)) ||
           (channel instanceof DMChannel && channel.recipientIds.has(this.id)),
       ) ||
-      this.client.servers.cache.find((server)=> server.members.cache.some((member) => member.id == this.id))
+      this.client.servers.cache.find((server) => server.members.cache.some((member) => member.id == this.id))
     ) {
       if (this.client.user?.bot || this.bot) {
         permissions |= UserPermission.SendMessage;
@@ -106,7 +106,7 @@ export class User extends Base {
     }
     return permissions;
   }
-  
+
   override toString() {
     return `<@${this.id}>`;
   }

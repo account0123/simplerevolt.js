@@ -23,7 +23,7 @@ export class Message extends Base {
     this.editedAt = data.edited ? new Date(data.edited) : null;
     this.channelId = data.channel;
     this.embeds = data.embeds?.map((embed) => MessageEmbed.from(client, embed)) || null;
-    this.member = data.member ? (client.servers.resolve(data.member._id.server)?.members.create(data.member)) : null;
+    this.member = data.member ? client.servers.resolve(data.member._id.server)?.members.create(data.member) : null;
     this.reactions = data.reactions
       ? objectToMap(mapObject(data.reactions, (_, idArray) => ({ [_]: new Set(idArray) })))
       : new Map();

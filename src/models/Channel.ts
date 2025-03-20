@@ -1,4 +1,12 @@
-import { DataEditChannel, Channel as ApiChannel, Override, DataMessageSend, Message as ApiMessage, User as ApiUser, DataMessageSearch } from "revolt-api";
+import {
+  DataEditChannel,
+  Channel as ApiChannel,
+  Override,
+  DataMessageSend,
+  Message as ApiMessage,
+  User as ApiUser,
+  DataMessageSearch,
+} from "revolt-api";
 import { Base } from "./Base";
 import type { Client } from "../Client";
 import { decodeTime, ulid } from "ulid";
@@ -198,8 +206,6 @@ export class TextBasedChannel extends Channel {
    * @returns Webhooks
    */
 
-
-  
   /**
    * Fetch a message by its ID
    */
@@ -214,11 +220,10 @@ export class TextBasedChannel extends Channel {
    * @param params Message fetching route data
    */
   async fetchMessages(
-    params?: 
-      (APIRoutes & {
-        method: "get";
-        path: "/channels/{target}/messages";
-      })["params"],
+    params?: (APIRoutes & {
+      method: "get";
+      path: "/channels/{target}/messages";
+    })["params"],
   ) {
     const messages = (await this.client.api.get(`/channels/${this.id as ""}/messages`, params || {})) as ApiMessage[];
 
@@ -240,7 +245,7 @@ export class TextBasedChannel extends Channel {
     const data = (await this.client.api.get(`/channels/${this.id as ""}/messages`, {
       ...params,
       include_users: true,
-    })) as { messages: ApiMessage[]; users: ApiUser[]; };
+    })) as { messages: ApiMessage[]; users: ApiUser[] };
 
     return {
       messages: data.messages.map((message) => this.client.messages.create(message)),
@@ -252,10 +257,7 @@ export class TextBasedChannel extends Channel {
    * Search for messages
    */
   async search(params: Omit<DataMessageSearch, "include_users">) {
-    const messages = (await this.client.api.post(
-      `/channels/${this.id as ""}/search`,
-      params,
-    )) as ApiMessage[];
+    const messages = (await this.client.api.post(`/channels/${this.id as ""}/search`, params)) as ApiMessage[];
 
     return messages.map((message) => this.client.messages.create(message));
   }
@@ -267,7 +269,7 @@ export class TextBasedChannel extends Channel {
     const data = (await this.client.api.post(`/channels/${this.id as ""}/search`, {
       ...params,
       include_users: true,
-    })) as { messages: ApiMessage[]; users: ApiUser[];};
+    })) as { messages: ApiMessage[]; users: ApiUser[] };
 
     return {
       messages: data.messages.map((message) => this.client.messages.create(message)),
@@ -348,9 +350,6 @@ export class TextBasedChannel extends Channel {
     )
       return false;
 
-    return (
-      (this.client.channelUnreads.resolve(this.id)?.lastMessageId ?? "0").localeCompare(this.lastMessageId) ==
-      -1
-    );
+    return (this.client.channelUnreads.resolve(this.id)?.lastMessageId ?? "0").localeCompare(this.lastMessageId) == -1;
   }
 }

@@ -26,7 +26,6 @@ import { AutumnFile, Client } from "..";
 export type GroupData = Extract<ApiChannel, { channel_type: "Group" }>;
 
 export class Group extends Channel {
-
   name: string;
   description: string | null;
   icon: AutumnFile | null;

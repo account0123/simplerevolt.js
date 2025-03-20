@@ -1,6 +1,6 @@
-import { Collection } from '@discordjs/collection';
-import { Client } from '../Client';
-import { Base } from '../models/Base';
+import { Collection } from "@discordjs/collection";
+import { Client } from "../Client";
+import { Base } from "../models/Base";
 
 /**
  * Manages the API methods of a data model along with a collection of instances.
@@ -11,7 +11,10 @@ abstract class DataCollection<T extends Base> {
    */
   readonly client: Client;
 
-  constructor(client: Client, protected holds: new (...args: any[]) => T) {
+  constructor(
+    client: Client,
+    protected holds: new (...args: any[]) => T,
+  ) {
     this.client = client;
   }
 
@@ -25,7 +28,7 @@ abstract class DataCollection<T extends Base> {
    */
   resolve(idOrInstance: string | T): T | null {
     if (idOrInstance instanceof this.holds) return idOrInstance;
-    if (typeof idOrInstance == 'string') return this.cache.get(idOrInstance) ?? null;
+    if (typeof idOrInstance == "string") return this.cache.get(idOrInstance) ?? null;
     return null;
   }
 
@@ -34,7 +37,7 @@ abstract class DataCollection<T extends Base> {
    */
   resolveId(idOrInstance: string | T): string | null {
     if (idOrInstance instanceof this.holds) return idOrInstance.id;
-    if (typeof idOrInstance == 'string') return idOrInstance;
+    if (typeof idOrInstance == "string") return idOrInstance;
     return null;
   }
 
@@ -47,7 +50,6 @@ type LimitedCollectionOptions<Key, Value> = {
   maxSize?: number;
   keepOverLimit?: (value: Value, key: Key, instance: Collection<Key, Value>) => boolean;
 };
-
 
 export class CachedCollection<T extends Base> extends DataCollection<T> {
   private readonly _cache: Collection<string, T>;
@@ -109,7 +111,7 @@ export class LimitedCollection<K, V> extends Collection<K, V> {
     }
     return super.set(key, value);
   }
-  
+
   static override get [Symbol.species]() {
     return Collection;
   }
@@ -123,7 +125,7 @@ export function makeLimitedCache<Key, Value>(settings: Record<string, LimitedCol
     if (setting == null) {
       return new Collection();
     }
-    if (typeof setting == 'number') {
+    if (typeof setting == "number") {
       return setting == Infinity ? new Collection() : new LimitedCollection({ maxSize: setting });
     }
 
