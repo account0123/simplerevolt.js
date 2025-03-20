@@ -1,1 +1,0 @@
-{"version":3,"file":"ServerCategoryCollection.js","sourceRoot":"","sources":["../../../src/collections/ServerCategoryCollection.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,QAAQ,EAAE,MAAM,0BAA0B,CAAC;AACpD,OAAO,EAAE,gBAAgB,EAAE,MAAM,kBAAkB,CAAC;AAEpD,MAAM,OAAO,wBAAyB,SAAQ,gBAA0B;IACpE,YAAY,MAAc;QACtB,KAAK,CAAC,MAAM,CAAC,MAAM,EAAE,QAAQ,CAAC,CAAC;IACnC,CAAC;CACJ"}
