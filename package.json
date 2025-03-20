@@ -1,0 +1,31 @@
+{
+  "name": "simplerevolt.js",
+  "version": "0.1.0",
+  "description": "Javascript library for interacting to Revolt API",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "pnpm run build:esm && pnpm run build:cjs",
+    "build:esm": "tsc",
+    "build:cjs": "tsc -p tsconfig.cjs.json"
+  },
+  "keywords": [],
+  "author": "Ian P <ianparra200@gmail.com>",
+  "license": "ISC",
+  "files": [
+    "lib",
+    "README.md"
+  ],
+  "packageManager": "pnpm@10.6.2",
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@discordjs/collection": "^2.1.1",
+    "@vladfrangu/async_event_emitter": "^2.4.6",
+    "long": "^5.3.1",
+    "revolt-api": "^0.8.3",
+    "ulid": "^2.3.0"
+  }
+}
