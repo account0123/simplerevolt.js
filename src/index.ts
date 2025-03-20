@@ -19,7 +19,8 @@ export type Partialize<
 
 export interface RecursiveReadonlyArray<ItemType> extends ReadonlyArray<ItemType | RecursiveReadonlyArray<ItemType>> {}
 
-export * from "./Client";
-export * from "./collections";
-export * from "./models";
-export * from "./events/EventClient";
+export * as API from "revolt-api";
+export { Client } from "./Client";
+export * from "./collections/index";
+export * from "./models/index";
+export { ConnectionState, EventClient } from "./events/EventClient";
