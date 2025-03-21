@@ -1,8 +1,8 @@
 import { OverrideField } from "revolt-api";
-import { Channel, Server, ServerChannel } from "..";
-import { Base } from "../models/Base";
-import { PermissionsBitField } from "./ops";
-import { PermissionOverridesData } from "../collections/PermissionOverrideCollection";
+
+import { Base, Channel, Server, ServerChannel } from "../models/index.js";
+import { PermissionsBitField } from "./ops.js";
+import { PermissionOverridesData } from "../collections/index.js";
 
 export class PermissionOverrides extends Base {
   allow: PermissionsBitField = new PermissionsBitField();

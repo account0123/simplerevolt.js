@@ -1,6 +1,7 @@
-import { User as ApiUser, DataChangeUsername } from "revolt-api";
-import { User } from ".";
-import type { Client } from "..";
+import type { User as ApiUser, DataChangeUsername } from "revolt-api";
+
+import { User } from "./index.js";
+import type { Client } from "../Client.js";
 
 export class ClientUser extends User {
   constructor(client: Client, data: ApiUser) {

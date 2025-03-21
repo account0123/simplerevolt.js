@@ -1,12 +1,7 @@
-/** @description Whether this direct message channel is currently open on both side
-active: boolean;
-/** @description 2-tuple of user ids participating in direct messag
-recipients: string[];
-*/
+import type { Channel } from "revolt-api";
 
-import { Channel } from "revolt-api";
-import { TextBasedChannel } from ".";
-import { Client } from "..";
+import { TextBasedChannel } from "./index.js";
+import { Client } from "../Client.js";
 
 type DMChannelData = Extract<Channel, { channel_type: "DirectMessage" }>;
 export class DMChannel extends TextBasedChannel {

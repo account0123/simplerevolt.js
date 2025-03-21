@@ -1,16 +1,16 @@
 import Long from "long";
 
-import { Channel, Client, DMChannel, Group, Server, ServerChannel, ServerMember } from "..";
-
+import { Channel, DMChannel, Group, Server, ServerChannel, ServerMember } from "../models/index.js";
+import type { Client } from "../Client.js";
 import {
   ALLOW_IN_TIMEOUT,
   DEFAULT_PERMISSION_DIRECT_MESSAGE,
   DEFAULT_PERMISSION_VIEW_ONLY,
   Permission,
+  PermissionOverrides,
   UserPermission,
-} from "./index";
-import { BitField } from "../utils/BitField";
-import { PermissionOverrides } from "./PermissionOverrides";
+} from "./index.js";
+import { BitField } from "../utils/BitField.js";
 
 export class PermissionsBitField extends BitField<keyof typeof Permission> {
   constructor(bits: number | Long = 0) {

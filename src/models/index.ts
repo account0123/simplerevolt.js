@@ -1,16 +1,25 @@
 export * from "./Base.js";
+
+// User
+export * from "./User.js";
+export * from "./ClientUser.js";
+
+// Channels
 export * from "./Channel.js";
 export * from "./ChannelUnread.js";
-export * from "./ClientUser.js";
 export * from "./DMChannel.js";
+export * from "./GroupChannel.js";
+
 export * from "./Emoji.js";
 export * from "./File.js";
-export * from "./GroupChannel.js";
-export * from "./Message.js";
 export * from "./MessageEmbed.js";
-export * from "./Role.js";
+
+// Server
 export * from "./Server.js";
+export * from "./Role.js";
 export * from "./ServerCategory.js";
 export * from "./ServerChannel.js";
 export * from "./ServerMember.js";
-export * from "./User.js";
+
+// Message
+export * from "./Message.js";

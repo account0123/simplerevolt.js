@@ -15,7 +15,7 @@ import type {
   User as ApiUser,
 } from "revolt-api";
 
-import { Client, Relationship, Server, Channel, Message, Group, TextBasedChannel } from "..";
+import { Client, Relationship, Server, Channel, Message, Group, TextBasedChannel } from "../index.js";
 
 /**
  * Version 1 of the events protocol

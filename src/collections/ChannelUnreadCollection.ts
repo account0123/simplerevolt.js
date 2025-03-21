@@ -1,7 +1,8 @@
-import { Client } from "..";
-import { ChannelUnread } from "../models/ChannelUnread";
-import { ChannelUnread as ApiChannelUnread } from "revolt-api";
-import { CachedCollection } from "./DataCollection";
+import type { ChannelUnread as ApiChannelUnread } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { ChannelUnread } from "../models/ChannelUnread.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class ChannelUnreadCollection extends CachedCollection<ChannelUnread> {
   constructor(client: Client) {

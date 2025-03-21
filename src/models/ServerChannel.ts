@@ -1,18 +1,16 @@
-import {
+import type {
   Channel as ApiChannel,
   Member as ApiMember,
   Message as ApiMessage,
   User as ApiUser,
   DataMessageSearch,
 } from "revolt-api";
-import { TextBasedChannel } from "./Channel";
-import { PermissionsBitField } from "../permissions/ops";
-import { AutumnFile } from "./File";
-import { ServerMember, type Client, type Message, type User } from "..";
-import { PermissionOverrides } from "../permissions/PermissionOverrides";
-import { PermissionOverrideCollection } from "../collections/PermissionOverrideCollection";
-import { APIRoutes } from "revolt-api/dist/routes";
-import { Permission } from "../permissions";
+import type { APIRoutes } from "revolt-api/dist/routes";
+
+import { AutumnFile, type Message, ServerMember, TextBasedChannel, type User } from "./index.js";
+import { Permission, PermissionsBitField, PermissionOverrides } from "../permissions/index.js";
+import type { Client } from "../Client.js";
+import { PermissionOverrideCollection } from "../collections/index.js";
 
 type ServerChannelData = Extract<ApiChannel, { channel_type: "TextChannel" | "VoiceChannel" }>;
 export class ServerChannel extends TextBasedChannel {

@@ -1,7 +1,8 @@
 import { decodeTime } from "ulid";
-import { Emoji as ApiEmoji } from "revolt-api";
-import type { Client } from "..";
-import { Base } from "./Base";
+import type { Emoji as ApiEmoji } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { Base } from "./index.js";
 
 /**
  * Emoji Class

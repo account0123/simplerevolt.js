@@ -1,10 +1,10 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
 import type { Error } from "revolt-api";
-import { AvailableProtocols, EventProtocol } from ".";
-import { ServerEventType } from "./v1";
-import { RJSError } from "../errors/RJSError";
-import { ErrorCodes } from "../errors/ErrorCodes";
-//import { once } from "events";
+
+import type { AvailableProtocols, EventProtocol } from "./index.js";
+import { ServerEventType } from "./v1.js";
+import { RJSError } from "../errors/RJSError.js";
+import { ErrorCodes } from "../errors/ErrorCodes.js";
 
 export enum ConnectionState {
   Idle = "Idle",

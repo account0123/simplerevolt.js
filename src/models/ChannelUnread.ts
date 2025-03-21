@@ -1,6 +1,7 @@
-import { ChannelUnread as ApiChannelUnread } from "revolt-api";
-import { Base } from "./Base";
-import type { Client } from "..";
+import type { ChannelUnread as ApiChannelUnread } from "revolt-api";
+
+import { Base } from "./Base.js";
+import type { Client } from "../Client.js";
 
 export class ChannelUnread extends Base {
   readonly id: string;

@@ -1,13 +1,9 @@
-import { Role, type Client } from "..";
-import { ChannelCollectionInServer } from "../collections/ChannelCollection";
-import { Base } from "./Base";
 import { Server as ApiServer, FieldsServer } from "revolt-api";
-import { AutumnFile } from "./File";
-import { ServerCategoryCollection } from "../collections/ServerCategoryCollection";
-import { Category } from "./ServerCategory";
-import { ServerMemberCollection } from "../collections/ServerMemberCollection";
-import { PermissionsBitField } from "../permissions/ops";
-import { RoleCollection } from "../collections/RoleCollection";
+
+import type { Client } from "../Client.js";
+import { ChannelCollectionInServer, ServerCategoryCollection, ServerMemberCollection, RoleCollection } from "../collections/index.js";
+import { AutumnFile, Base, Category, Role } from "./index.js";
+import { PermissionsBitField } from "../permissions/ops.js";
 
 export class Server extends Base {
   // @ts-ignore unused

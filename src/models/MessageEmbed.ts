@@ -1,6 +1,7 @@
 import type { Embed, ImageSize, Special } from "revolt-api";
-import type { Client } from "..";
-import { AutumnFile } from "./File";
+
+import type { Client } from "../Client.js";
+import { AutumnFile } from "./File.js";
 
 export abstract class MessageEmbed {
   protected client?: Client | undefined;

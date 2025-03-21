@@ -1,6 +1,8 @@
-import { Message as ApiMessage } from "revolt-api";
-import { Message, type Client } from "..";
-import { CachedCollection } from "./DataCollection";
+import type { Message as ApiMessage } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { Message } from "../models/index.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class MessageCollection extends CachedCollection<Message> {
   constructor(client: Client) {

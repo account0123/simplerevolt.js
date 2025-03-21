@@ -1,9 +1,9 @@
-import { Channel as ApiChannel } from "revolt-api";
-import type { Client } from "..";
-import { Channel } from "../models/Channel";
-import type { Server } from "../models/Server";
-import { CachedCollection } from "./DataCollection";
-import { ServerChannel } from "../models";
+import type { Channel as ApiChannel } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { Channel, ServerChannel } from "../models/index.js";
+import type { Server } from "../models/Server.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class ChannelCollection extends CachedCollection<Channel> {
   constructor(client: Client) {

@@ -1,7 +1,7 @@
 import { Member } from "revolt-api";
-import type { Server } from "..";
-import { ServerMember } from "../models/ServerMember";
-import { CachedCollection } from "./DataCollection";
+
+import { type Server, ServerMember } from "../models/index.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class ServerMemberCollection extends CachedCollection<ServerMember> {
   constructor(readonly server: Server) {

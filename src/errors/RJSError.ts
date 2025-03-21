@@ -1,4 +1,4 @@
-import { ErrorCodes, Messages } from "./ErrorCodes";
+import { ErrorCodes, Messages } from "./ErrorCodes.js";
 
 export class RJSError extends Error {
   constructor(

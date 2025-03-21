@@ -1,4 +1,4 @@
-import { Client } from "..";
+import type { Client } from "../Client.js";
 
 export abstract class Base {
   constructor(readonly client: Client) {}

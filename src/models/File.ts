@@ -1,5 +1,5 @@
-import { File as ApiFile } from "revolt-api";
-import type { Client } from "..";
+import type { File as ApiFile } from "revolt-api";
+import type { Client } from "../Client.js";
 
 export enum FileType {
   Audio = "Audio",

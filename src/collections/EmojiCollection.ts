@@ -1,7 +1,8 @@
-import { Emoji as ApiEmoji } from "revolt-api";
-import type { Client } from "..";
-import { Emoji } from "../models/Emoji";
-import { CachedCollection } from "./DataCollection";
+import type { Emoji as ApiEmoji } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { Emoji } from "../models/Emoji.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class EmojiCollection extends CachedCollection<Emoji> {
   constructor(client: Client) {

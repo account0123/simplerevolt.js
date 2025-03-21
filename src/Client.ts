@@ -1,14 +1,10 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
 import { API, type DataLogin, type RevoltConfig } from "revolt-api";
-import { EventClient, EventClientOptions } from "./events/EventClient";
-import { ChannelUnreadCollection } from "./collections/ChannelUnreadCollection";
-import { ChannelCollection } from "./collections/ChannelCollection";
-import { ServerCollection } from "./collections/ServerCollection";
-import { UserCollection } from "./collections/UserCollection";
-import { Channel, Emoji, Message, Role, Server, ServerMember, User } from "./models";
-import { EmojiCollection } from "./collections/EmojiCollection";
-import { MessageCollection } from "./collections/MessageCollection";
-import { ConnectionState, handleEventV1 } from "./events";
+
+import { EventClient, EventClientOptions } from "./events/EventClient.js";
+import { ChannelCollection, ChannelUnreadCollection, EmojiCollection, MessageCollection, ServerCollection, UserCollection } from "./collections/index.js";
+import { Channel, Emoji, Message, Role, Server, ServerMember, User } from "./models/index.js";
+import { ConnectionState, handleEventV1 } from "./events/index.js";
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;

@@ -1,27 +1,7 @@
-/** @description Display name of the channel 
- name: string;
- /** @description User id of the owner of the group 
- owner: string;
- /** @description Channel description 
- description?: string | null;
- /** @description Array of user ids participating in channel 
- recipients: string[];
- /** @description Custom icon attachment 
- icon?: components["schemas"]["File"] | null;
- /** @description Id of the last message sent in this channel 
- last_message_id?: string | null;
- /**
-  * Format: int64
-  * @description Permissions assigned to members of this group (does not apply to the owner of the group)
-  
- permissions?: number | null;
- /** @description Whether this group is marked as not safe for work 
- nsfw?: boolean;
- */
-
 import type { Channel as ApiChannel } from "revolt-api";
-import { Channel, User } from ".";
-import { AutumnFile, Client } from "..";
+
+import { AutumnFile, Channel, type User } from "./index.js";
+import { Client } from "../Client.js";
 
 export type GroupData = Extract<ApiChannel, { channel_type: "Group" }>;
 
@@ -57,7 +37,7 @@ export class Group extends Channel {
   async fetchMembers(): Promise<User[]> {
     const members = await this.client.api.get(`/channels/${this.id as ""}/members`);
 
-    return members.map((user) => this.client.users._add(new User(this.client, user)));
+    return members.map((user) => this.client.users.create(user));
   }
 
   /**

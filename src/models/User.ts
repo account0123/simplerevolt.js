@@ -1,7 +1,8 @@
-import { Client, DMChannel, Group } from "..";
-import { User as ApiUser, DataEditUser, RelationshipStatus, UserStatus } from "revolt-api";
-import { Base } from "./Base";
-import { U32_MAX, UserPermission } from "../permissions";
+import type { User as ApiUser, DataEditUser, RelationshipStatus, UserStatus } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { Base, DMChannel, Group } from "./index.js";
+import { U32_MAX, UserPermission } from "../permissions/index.js";
 
 export enum UserFlags {
   Suspended = 1,

@@ -1,6 +1,7 @@
 import { Collection } from "@discordjs/collection";
-import { Client } from "../Client";
-import { Base } from "../models/Base";
+
+import type { Client } from "../Client.js";
+import type { Base } from "../models/Base.js";
 
 /**
  * Manages the API methods of a data model along with a collection of instances.

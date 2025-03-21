@@ -1,7 +1,8 @@
 import { User as ApiUser } from "revolt-api";
-import type { Client } from "..";
-import { User } from "../models/User";
-import { CachedCollection } from "./DataCollection";
+
+import type { Client } from "../Client.js";
+import { User } from "../models/index.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class UserCollection extends CachedCollection<User> {
   constructor(client: Client) {

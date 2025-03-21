@@ -1,7 +1,8 @@
-import { OverrideField } from "revolt-api";
-import type { Channel, Server } from "..";
-import { PermissionOverrides } from "../permissions/PermissionOverrides";
-import { CachedCollection } from "./DataCollection";
+import type { OverrideField } from "revolt-api";
+
+import type { Channel, Server } from "../models/index.js";
+import { PermissionOverrides } from "../permissions/PermissionOverrides.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export type PermissionOverridesData = OverrideField & { id: string };
 export class PermissionOverrideCollection extends CachedCollection<PermissionOverrides> {

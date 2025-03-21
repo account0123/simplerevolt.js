@@ -7,15 +7,12 @@ import {
   User as ApiUser,
   DataMessageSearch,
 } from "revolt-api";
-import { Base } from "./Base";
-import type { Client } from "../Client";
+import type { APIRoutes } from "revolt-api/dist/routes";
 import { decodeTime, ulid } from "ulid";
-import { calculatePermission, PermissionsBitField } from "../permissions/ops";
-import { Permission } from "../permissions";
-import type { Message } from "./Message";
-import { APIRoutes } from "revolt-api/dist/routes";
-import type { User } from "./User";
 
+import { Base, type Message, type User } from "./index.js";
+import type { Client } from "../Client.js";
+import { calculatePermission, Permission, PermissionsBitField } from "../permissions/index.js";
 
 /**
  * Channel Class

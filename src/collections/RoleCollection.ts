@@ -1,5 +1,5 @@
-import { Role, Server } from "..";
-import { CachedCollection } from "./DataCollection";
+import { Role, Server } from "../models/index.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class RoleCollection extends CachedCollection<Role> {
   constructor(server: Server, iterable?: Iterable<Role>) {

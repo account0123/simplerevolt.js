@@ -1,8 +1,8 @@
-import { Client, MessageEmbed, ServerChannel, User } from "..";
-import { Message as ApiMessage, Embed } from "revolt-api";
-import { Base } from "./Base";
-import { ServerMember } from "./ServerMember";
-import { mapObject, objectToMap } from "../utils";
+import type { Message as ApiMessage, Embed } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { Base, MessageEmbed, ServerChannel, type ServerMember, type User } from "./index.js";
+import { mapObject, objectToMap } from "../utils/index.js";
 
 export class Message extends Base {
 

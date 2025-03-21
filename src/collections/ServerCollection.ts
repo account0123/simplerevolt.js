@@ -1,7 +1,8 @@
-import { Server as ApiServer } from "revolt-api";
-import type { Client } from "..";
-import { Server } from "../models/Server";
-import { CachedCollection } from "./DataCollection";
+import type { Server as ApiServer } from "revolt-api";
+
+import type { Client } from "../Client.js";
+import { Server } from "../models/index.js";
+import { CachedCollection } from "./DataCollection.js";
 
 export class ServerCollection extends CachedCollection<Server> {
   constructor(client: Client) {
