@@ -7,9 +7,10 @@ export class MessageCollection extends CachedCollection<Message> {
     super(client, Message);
   }
 
-  create(data: ApiMessage) {
+  create(data: ApiMessage, isNew = false) {
     const instance = new Message(this.client, data);
     this.cache.set(instance.id, instance);
+    isNew && this.client.emit("messageCreate", instance);
     return instance;
   }
 

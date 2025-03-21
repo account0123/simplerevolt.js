@@ -97,7 +97,7 @@ type ServerMessage =
   | ({ type: "Ready" } & ReadyData)
   | { type: "Ping"; data: number }
   | { type: "Pong"; data: number }
-  | ({ type: "Message" } & Message)
+  | ({ type: "Message" } & ApiMessage)
   | {
       type: "MessageUpdate";
       id: string;
@@ -269,19 +269,25 @@ export async function handleEvent(client: Client, event: ServerMessage, setReady
       break;
     }
     case "Message": {
-      if (!client.messages.cache.has(event.id)) {
+      if (!client.messages.cache.has(event._id)) {
         if (event.member) {
-          event.member.server?.members._add(event.member);
+          const server = client.servers.resolve(event.member._id.server);
+          server && server.members.create(event.member);
         }
 
         if (event.user) {
-          client.users._add(event.user);
+          client.users.create(event.user);
         }
 
-        client.messages._add(event);
-        const channel = client.channels.cache.get(event.channelId);
+        // Prevents double creation
+        delete event.member;
+        delete event.user;
+
+        client.messages.create(event, true);
+
+        const channel = client.channels.resolve(event.channel);
         if (channel) {
-          channel.lastMessageId = event.id;
+          channel.lastMessageId = event._id;
         }
       }
       break;

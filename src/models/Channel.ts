@@ -13,11 +13,9 @@ import { decodeTime, ulid } from "ulid";
 import { calculatePermission, PermissionsBitField } from "../permissions/ops";
 import { Permission } from "../permissions";
 import type { Message } from "./Message";
-import { DMChannel } from "./DMChannel";
-import { Group } from "./GroupChannel";
 import { APIRoutes } from "revolt-api/dist/routes";
 import type { User } from "./User";
-import { TextChannel, VoiceChannel } from "./ServerChannel";
+
 
 /**
  * Channel Class
@@ -26,6 +24,7 @@ export class Channel extends Base {
   readonly id: string;
   readonly channelType: ApiChannel["channel_type"];
   lastMessageId: string | null = null;
+  
   constructor(client: Client, data: ApiChannel) {
     super(client);
     this.id = data._id;
@@ -90,6 +89,8 @@ export class Channel extends Base {
       this.#ackLimit = +new Date() + 15e3;
     }
   }
+
+  static from: (client: Client, data: ApiChannel) => Channel;
 
   /**
    * Write to string as a channel mention
@@ -167,21 +168,6 @@ export class Channel extends Base {
    */
   async edit(data: DataEditChannel) {
     await this.client.api.patch(`/channels/${this.id as ""}`, data);
-  }
-
-  static from(client: Client, data: ApiChannel) {
-    switch (data.channel_type) {
-      case "SavedMessages":
-        return new this(client, data);
-      case "DirectMessage":
-        return new DMChannel(client, data);
-      case "Group":
-        return new Group(client, data);
-      case "TextChannel":
-        return new TextChannel(client, data);
-      case "VoiceChannel":
-        return new VoiceChannel(client, data);
-    }
   }
 
   override update(_: Partial<ApiChannel>) {

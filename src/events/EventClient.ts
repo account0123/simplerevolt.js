@@ -4,7 +4,7 @@ import { AvailableProtocols, EventProtocol } from ".";
 import { ServerEventType } from "./v1";
 import { RJSError } from "../errors/RJSError";
 import { ErrorCodes } from "../errors/ErrorCodes";
-import { once } from "events";
+//import { once } from "events";
 
 export enum ConnectionState {
   Idle = "Idle",
@@ -99,12 +99,6 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
     this.#lastError = undefined;
     this.state = ConnectionState.Connecting;
 
-    const controller = new AbortController();
-
-    const closeHandler = () => {
-      controller.abort();
-    };
-
     this.#connectTimeoutReference = setTimeout(() => this.disconnect(), this.options.pongTimeout * 1e3) as never;
 
     this.#socket = new WebSocket(
@@ -120,7 +114,6 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
 
     this.#socket.onerror = (error) => {
       this.#lastError = { type: "socket", data: error };
-      closeHandler();
       this.emit("error", error as never);
     };
 
@@ -140,21 +133,8 @@ export class EventClient<T extends AvailableProtocols> extends AsyncEventEmitter
       closed = true;
       this.#socket = undefined;
       this.state = ConnectionState.Disconnected;
-      closeHandler();
       this.disconnect();
     };
-
-    try {
-      await Promise.race([once(this, ConnectionState.Disconnected, { signal: controller.signal })]);
-      this.options.debug && console.debug("ConnectionState resolved");
-    } catch (error) {
-      console.error(error);
-    } finally {
-      if (!controller.signal.aborted) {
-        this.options.debug && console.debug("Aborting connection");
-        controller.abort();
-      }
-    }
   }
 
   /**

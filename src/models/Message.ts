@@ -5,6 +5,8 @@ import { ServerMember } from "./ServerMember";
 import { mapObject, objectToMap } from "../utils";
 
 export class Message extends Base {
+
+  readonly authorId: string;
   readonly id: string;
   content: string | null;
   readonly channelId: string;
@@ -18,6 +20,7 @@ export class Message extends Base {
 
   constructor(client: Client, data: ApiMessage) {
     super(client);
+    this.authorId = data.author;
     this.id = data._id;
     this.content = data.content || null;
     this.editedAt = data.edited ? new Date(data.edited) : null;
@@ -28,8 +31,7 @@ export class Message extends Base {
       ? objectToMap(mapObject(data.reactions, (_, idArray) => ({ [_]: new Set(idArray) })))
       : new Map();
     this.userId = data.user?._id || null;
-    // Get user from cache or creates a new one
-    this.user = data.user ? client.users._add(new User(client, data.user)) : null;
+    this.user = data.user ? client.users.create(data.user) : null;
     this.pinned = data.pinned || false;
   }
 
@@ -43,6 +45,10 @@ export class Message extends Base {
     return this.client.channels.resolve(this.channelId);
   }
 
+  get author() {
+    return this.client.users.resolve(this.authorId);
+  }
+  
   get server() {
     return this.channel instanceof ServerChannel ? this.channel.server : null;
   }

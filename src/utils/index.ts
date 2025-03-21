@@ -1,3 +1,5 @@
+import { Channel, DMChannel, Group, TextChannel, VoiceChannel } from "../models";
+
 export function objectToMap<T>(obj: Record<string, T>): Map<string, T> {
   if (typeof obj != "object") throw new TypeError("Expected an object");
 
@@ -17,3 +19,18 @@ export function mapObject<T, U>(obj: Record<string, T>, mapper: (key: string, va
   }
   return result;
 }
+
+Channel.from = function (client, data) {
+  switch (data.channel_type) {
+    case "SavedMessages":
+      return new Channel(client, data);
+    case "DirectMessage":
+      return new DMChannel(client, data);
+    case "Group":
+      return new Group(client, data);
+    case "TextChannel":
+      return new TextChannel(client, data);
+    case "VoiceChannel":
+      return new VoiceChannel(client, data);
+  }
+};
