@@ -1,6 +1,6 @@
 {
   "name": "simplerevolt.js",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Javascript library for interacting to Revolt API",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
@@ -17,7 +17,8 @@
     "format": "pnpm prettier --write src/",
     "prepublishOnly": "pnpm build",
     "pretest": "pnpm build",
-    "test": "node tests/test.cjs"
+    "test:cjs": "node tests/test.cjs",
+    "test:esm": "node tests/test.mjs"
   },
   "keywords": [],
   "author": "Ian P <ianparra200@gmail.com>",
