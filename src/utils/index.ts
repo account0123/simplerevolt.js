@@ -1,4 +1,4 @@
-import { Channel, DMChannel, Group, TextChannel, VoiceChannel } from "../models";
+import { Channel, DMChannel, Group, TextChannel, VoiceChannel } from "../models/index.js";
 
 export function objectToMap<T>(obj: Record<string, T>): Map<string, T> {
   if (typeof obj != "object") throw new TypeError("Expected an object");

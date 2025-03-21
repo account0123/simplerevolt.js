@@ -1,4 +1,4 @@
-import { Channel, ServerMember, Message, User } from "./models";
+import type { Channel, ServerMember, Message, User } from "./models/index.js";
 
 export type AllowedPartial = User | Channel | ServerMember | Message;
 
@@ -20,7 +20,9 @@ export type Partialize<
 export interface RecursiveReadonlyArray<ItemType> extends ReadonlyArray<ItemType | RecursiveReadonlyArray<ItemType>> {}
 
 export * as API from "revolt-api";
-export { Client } from "./Client";
-export * from "./collections/index";
-export * from "./models/index";
-export { ConnectionState, EventClient } from "./events/EventClient";
+
+export { Client } from "./Client.js";
+export * from "./collections/index.js";
+export * from "./models/index.js";
+export { ConnectionState, EventClient } from "./events/EventClient.js";
+export * from "./regex.js";
