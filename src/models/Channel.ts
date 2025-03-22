@@ -21,7 +21,7 @@ export class Channel extends Base {
   readonly id: string;
   readonly channelType: ApiChannel["channel_type"];
   lastMessageId: string | null = null;
-  
+
   constructor(client: Client, data: ApiChannel) {
     super(client);
     this.id = data._id;
