@@ -329,12 +329,12 @@ export async function handleEvent(client: Client, event: ServerMessage, setReady
       const message = client.messages.cache.get(event.id);
       if (message) {
         const reactions = message.reactions;
-        const set = reactions.get(event.emoji_id);
+        const set = reactions.resolve(event.emoji_id);
         if (set) {
           if (set.has(event.user_id)) return;
           set.add(event.user_id);
         } else {
-          reactions.set(event.emoji_id, new Set([event.user_id]));
+          reactions.cache.set(event.emoji_id, new Set([event.user_id]));
         }
 
         client.emit("messageReactionAdd", message, event.user_id, event.emoji_id);
@@ -342,9 +342,9 @@ export async function handleEvent(client: Client, event: ServerMessage, setReady
       break;
     }
     case "MessageUnreact": {
-      const message = client.messages.cache.get(event.id);
+      const message = client.messages.resolve(event.id);
       if (message) {
-        const set = message.reactions.get(event.emoji_id);
+        const set = message.reactions.resolve(event.emoji_id);
         if (set?.has(event.user_id)) {
           set.delete(event.user_id);
         }
@@ -354,11 +354,11 @@ export async function handleEvent(client: Client, event: ServerMessage, setReady
       break;
     }
     case "MessageRemoveReaction": {
-      const message = client.messages.cache.get(event.id);
+      const message = client.messages.resolve(event.id);
       if (message) {
         const reactions = message.reactions;
-        if (reactions.has(event.emoji_id)) {
-          reactions.delete(event.emoji_id);
+        if (reactions.cache.has(event.emoji_id)) {
+          reactions.cache.delete(event.emoji_id);
         }
 
         client.emit("messageReactionRemoveEmoji", message, event.emoji_id);

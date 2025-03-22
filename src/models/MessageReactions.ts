@@ -37,8 +37,8 @@ export class MessageReactions {
     return result;
   }
 
-  includesEmoji(emoji: string) {
-    return this._cache.some((emojis) => emojis.has(emoji));
+  fromUser(userId: string) {
+    return [...this._cache.filter((reactions) => reactions.has(userId)).keys()];
   }
 
   restrict({ reactions, restrict_reactions }: Interactions) {
@@ -49,9 +49,13 @@ export class MessageReactions {
     }
   }
 
+  resolve(emojiId: string) {
+    return this._cache.get(emojiId) || null;
+  }
+
   update(data: MessageReactionsData) {
-    for (const author in data) {
-      this._cache.set(author, new Set(data[author]));
+    for (const emojiId in data) {
+      this._cache.set(emojiId, new Set(data[emojiId]));
     }
   }
 }
