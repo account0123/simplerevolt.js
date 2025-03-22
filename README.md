@@ -1,6 +1,7 @@
 # Simple revolt.js
 
 ![simplerevolt.js](https://img.shields.io/npm/v/simplerevolt.js) ![revolt-api](https://img.shields.io/npm/v/revolt-api?label=Revolt%20API)
+
 Javascript library that allows you to easily interact with the [Revolt API](https://developers.revolt.chat/developers/api/reference).
 
 ## Installation
