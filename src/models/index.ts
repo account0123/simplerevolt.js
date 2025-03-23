@@ -9,6 +9,7 @@ export * from "./Channel.js";
 export * from "./ChannelUnread.js";
 export * from "./DMChannel.js";
 export * from "./GroupChannel.js";
+export * from "./ChannelWebhook.js";
 
 export * from "./Emoji.js";
 export * from "./File.js";
