@@ -160,6 +160,16 @@ export class Channel extends Base {
   }
 
   /**
+   * Fetch a channel's webhooks
+   * @requires `TextChannel`, `Group`
+   */
+  async fetchWebhooks() {
+    const webhooks = await this.client.api.get(`/channels/${this.id as ""}/webhooks`);
+
+    return webhooks.map((webhook) => this.client.channelWebhooks.create(this, webhook));
+  }
+
+  /**
    * Edit a channel
    * @param data Changes
    */

@@ -5,6 +5,7 @@ import { EventClient, EventClientOptions } from "./events/EventClient.js";
 import {
   ChannelCollection,
   ChannelUnreadCollection,
+  ChannelWebhookCollection,
   EmojiCollection,
   MessageCollection,
   ServerCollection,
@@ -130,6 +131,7 @@ export class Client extends AsyncEventEmitter<Events> {
   readonly emojis = new EmojiCollection(this);
   readonly events: EventClient<1>;
   readonly messages = new MessageCollection(this);
+  readonly channelWebhooks = new ChannelWebhookCollection(this);
   readonly options: ClientOptions;
   // @ts-ignore unused
   private ready: boolean = false;
