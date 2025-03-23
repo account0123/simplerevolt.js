@@ -14,6 +14,7 @@ export * from "./ChannelWebhook.js";
 export * from "./Emoji.js";
 export * from "./File.js";
 export * from "./MessageEmbed.js";
+export * from "./UserProfile.js";
 
 // Server
 export * from "./Server.js";
