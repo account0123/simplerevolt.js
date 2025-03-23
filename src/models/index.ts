@@ -3,6 +3,7 @@ export * from "./Base.js";
 // User
 export * from "./User.js";
 export * from "./ClientUser.js";
+export * from "./Bot.js";
 
 // Channels
 export * from "./Channel.js";

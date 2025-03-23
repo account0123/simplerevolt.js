@@ -1,6 +1,19 @@
 import type { File as ApiFile } from "revolt-api";
 import type { Client } from "../Client.js";
 
+/**
+ * Tag to upload to
+ * https://autumn.revolt.chat/scalar#tag/api/POST/{tag}
+ */
+export enum Tag {
+  Attachments = "attachments",
+  Avatars = "avatars",
+  Banners = "banners",
+  Backgrounds = "backgrounds",
+  Emojis = "emojis",
+  Icons = "icons",
+}
+
 export enum FileType {
   Audio = "Audio",
   File = "File",

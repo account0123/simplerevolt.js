@@ -1,3 +1,4 @@
+export * from "./BotCollection.js";
 export * from "./ChannelCollection.js";
 export * from "./ChannelUnreadCollection.js";
 export * from "./ChannelWebhookCollection.js";

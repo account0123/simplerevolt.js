@@ -1,12 +1,26 @@
-import type { User as ApiUser, DataChangeUsername } from "revolt-api";
+import type { User as ApiUser, BotWithUserResponse, DataChangeUsername, OwnedBotsResponse } from "revolt-api";
 
-import { User } from "./index.js";
+import { OwnedBot, User } from "./index.js";
 import type { Client } from "../Client.js";
 
 export class ClientUser extends User {
   constructor(client: Client, data: ApiUser) {
     super(client, data);
     this.update(data);
+  }
+
+  async fetchOwnedBots() {
+    const bots: OwnedBot[] = [];
+    const result = (await this.client.api.get("/bots/@me")) as OwnedBotsResponse;
+    if (!result) return bots;
+    for (let i = 0; i < result.bots.length; i++) {
+      const bot = result.bots[i];
+      const user = result.users[i];
+      if (!bot || !user) continue;
+      const data: BotWithUserResponse = Object.assign(bot, { user });
+      bots.push(this.client.bots.create(data));
+    }
+    return bots;
   }
 
   /**

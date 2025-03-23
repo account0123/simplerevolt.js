@@ -1,8 +1,9 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
-import { API, type DataLogin, type RevoltConfig } from "revolt-api";
+import { API, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
 
 import { EventClient, EventClientOptions } from "./events/EventClient.js";
 import {
+  BotCollection,
   ChannelCollection,
   ChannelUnreadCollection,
   ChannelWebhookCollection,
@@ -11,7 +12,7 @@ import {
   ServerCollection,
   UserCollection,
 } from "./collections/index.js";
-import { Channel, Emoji, Message, Role, Server, ServerMember, User } from "./models/index.js";
+import { Channel, Emoji, Message, PublicBot, Role, Server, ServerMember, User } from "./models/index.js";
 import { ConnectionState, handleEventV1 } from "./events/index.js";
 
 type Token = string;
@@ -126,6 +127,7 @@ export class Client extends AsyncEventEmitter<Events> {
   #connectionFailureCount = 0;
   #reconnectTimeout: number | undefined;
   #session: Session | undefined;
+  readonly bots = new BotCollection(this);
   readonly channelUnreads = new ChannelUnreadCollection(this);
   readonly channels = new ChannelCollection(this);
   readonly emojis = new EmojiCollection(this);
@@ -205,6 +207,19 @@ export class Client extends AsyncEventEmitter<Events> {
     });
 
     this.events.on("event", (event) => handleEventV1(this, event, setReady.bind(this)));
+  }
+
+  async createBot(data: DataCreateBot) {
+    const bot = await this.api.post("/bots/create", data);
+    return this.bots.create(bot);
+  }
+
+  /**
+   * Fetch details of a public (or owned) bot by its id.
+   */
+  async fetchPublicBot(id: string) {
+    const data = await this.api.get(`/bots/${id as ""}/invite`);
+    return new PublicBot(this, data);
   }
 
   get connectionFailures() {
