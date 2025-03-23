@@ -3,6 +3,7 @@ export * from "./Base.js";
 // User
 export * from "./User.js";
 export * from "./ClientUser.js";
+export * from "./Bot.js";
 
 // Channels
 export * from "./Channel.js";
@@ -14,6 +15,7 @@ export * from "./ChannelWebhook.js";
 export * from "./Emoji.js";
 export * from "./File.js";
 export * from "./MessageEmbed.js";
+export * from "./UserProfile.js";
 
 // Server
 export * from "./Server.js";

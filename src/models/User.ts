@@ -1,7 +1,7 @@
 import type { User as ApiUser, DataEditUser, RelationshipStatus, UserStatus } from "revolt-api";
 
 import type { Client } from "../Client.js";
-import { Base, DMChannel, Group } from "./index.js";
+import { Base, DMChannel, Group, UserProfile } from "./index.js";
 import { U32_MAX, UserPermission } from "../permissions/index.js";
 
 export enum UserFlags {
@@ -45,6 +45,7 @@ export class User extends Base {
   readonly isOnline: boolean = false;
   privileged: boolean = false;
   readonly ownerId: string | null = null;
+  profile: UserProfile | null = null;
   status: UserStatus | null;
   readonly relationship: RelationshipStatus;
 
@@ -63,6 +64,10 @@ export class User extends Base {
     this.update(data);
   }
 
+  get bot() {
+    return this.ownerId != null;
+  }
+
   /**
    * Edits the user
    */
@@ -70,8 +75,18 @@ export class User extends Base {
     return await this.client.api.patch(`/users/${this.id == this.client.user?.id ? "@me" : this.id}`, data);
   }
 
-  get bot() {
-    return this.ownerId != null;
+  /**
+   * Fetch the profile of a user
+   * @returns The profile of the user
+   */
+  async fetchProfile() {
+    try {
+      this.profile = new UserProfile(this.client, await this.client.api.get(`/users/${this.id as ""}/profile`));
+    } catch (error) {
+      this.profile = this.profile || null;
+    }
+
+    return this.profile;
   }
 
   /**
