@@ -1,10 +1,20 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
-import { API, type DataLogin, type RevoltConfig } from "revolt-api";
+import { API, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
 
 import { EventClient, EventClientOptions } from "./events/EventClient.js";
-import { ChannelCollection, ChannelUnreadCollection, EmojiCollection, MessageCollection, ServerCollection, UserCollection } from "./collections/index.js";
-import { Channel, Emoji, Message, Role, Server, ServerMember, User } from "./models/index.js";
+import {
+  BotCollection,
+  ChannelCollection,
+  ChannelUnreadCollection,
+  ChannelWebhookCollection,
+  EmojiCollection,
+  MessageCollection,
+  ServerCollection,
+  UserCollection,
+} from "./collections/index.js";
+import { Channel, Emoji, Message, PublicBot, Role, Server, ServerMember, User } from "./models/index.js";
 import { ConnectionState, handleEventV1 } from "./events/index.js";
+import { SimpleRequest } from "./rest/index.js";
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
@@ -114,15 +124,17 @@ export type ClientOptions = Partial<EventClientOptions> & {
 };
 
 export class Client extends AsyncEventEmitter<Events> {
-  api: API;
+  api: SimpleRequest;
   #connectionFailureCount = 0;
   #reconnectTimeout: number | undefined;
   #session: Session | undefined;
+  readonly bots = new BotCollection(this);
   readonly channelUnreads = new ChannelUnreadCollection(this);
   readonly channels = new ChannelCollection(this);
   readonly emojis = new EmojiCollection(this);
   readonly events: EventClient<1>;
   readonly messages = new MessageCollection(this);
+  readonly channelWebhooks = new ChannelWebhookCollection(this);
   readonly options: ClientOptions;
   // @ts-ignore unused
   private ready: boolean = false;
@@ -160,9 +172,11 @@ export class Client extends AsyncEventEmitter<Events> {
       },
       ...options,
     };
-    this.api = new API({
-      baseURL: this.options.baseURL,
-    });
+    this.api = new SimpleRequest(
+      new API({
+        baseURL: this.options.baseURL,
+      }),
+    );
     const setReady = (ready: boolean) => {
       if (typeof ready != "boolean") throw new Error("ready must be a boolean");
       this.ready = ready;
@@ -196,6 +210,19 @@ export class Client extends AsyncEventEmitter<Events> {
     });
 
     this.events.on("event", (event) => handleEventV1(this, event, setReady.bind(this)));
+  }
+
+  async createBot(data: DataCreateBot) {
+    const bot = await this.api.post("/bots/create", data);
+    return this.bots.create(bot);
+  }
+
+  /**
+   * Fetch details of a public (or owned) bot by its id.
+   */
+  async fetchPublicBot(id: string) {
+    const data = await this.api.get(`/bots/${id as ""}/invite`);
+    return new PublicBot(this, data);
   }
 
   get connectionFailures() {
@@ -237,12 +264,14 @@ export class Client extends AsyncEventEmitter<Events> {
    * Update API object to use authentication.
    */
   #updateHeaders() {
-    this.api = new API({
-      baseURL: this.options.baseURL,
-      authentication: {
-        revolt: this.#session,
-      },
-    });
+    this.api = new SimpleRequest(
+      new API({
+        baseURL: this.options.baseURL,
+        authentication: {
+          revolt: this.#session,
+        },
+      }),
+    );
   }
 
   /**

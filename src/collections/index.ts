@@ -1,5 +1,7 @@
+export * from "./BotCollection.js";
 export * from "./ChannelCollection.js";
 export * from "./ChannelUnreadCollection.js";
+export * from "./ChannelWebhookCollection.js";
 export * from "./DataCollection.js";
 export * from "./EmojiCollection.js";
 export * from "./MessageCollection.js";

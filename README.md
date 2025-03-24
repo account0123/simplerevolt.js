@@ -1,5 +1,8 @@
-# revolt.js
-Javascript library for interacting to Revolt API.
+# Simple revolt.js
+
+![simplerevolt.js](https://img.shields.io/npm/v/simplerevolt.js) ![revolt-api](https://img.shields.io/npm/v/revolt-api?label=Revolt%20API)
+
+Javascript library that allows you to easily interact with the [Revolt API](https://developers.revolt.chat/developers/api/reference).
 
 ## Installation
 
@@ -20,9 +23,11 @@ yarn add simplerevolt.js
 
 ## Usage
 
-### CommonJS
 ```js
-const { Client } = require("..");
+// esm / typescript
+import { Client } from "simplerevolt.js";
+// ...or commonjs
+const { Client } = require("simplerevolt.js");
 
 const client = new Client({
   // Enables debug logging
@@ -39,6 +44,19 @@ client.on("disconnected", () => console.log("Disconnected"));
 client.loginBot("YOUR_TOKEN_HERE");
 ```
 
+## Revolt API types
+
+> [!WARNING]
+> It is advised you do not use this unless necessary. If you find somewhere that isn't covered by the library, please open an issue as this library aims to transform all objects.
+
+All `revolt-api` types are re-exported from this library under `API`.
+
+```typescript
+import { API } from "simplerevolt.js";
+
+// API.Channel;
+// API.[..];
+```
 
 ## Troubleshooting
 

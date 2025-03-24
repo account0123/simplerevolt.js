@@ -1,7 +1,12 @@
 import { Server as ApiServer, FieldsServer } from "revolt-api";
 
 import type { Client } from "../Client.js";
-import { ChannelCollectionInServer, ServerCategoryCollection, ServerMemberCollection, RoleCollection } from "../collections/index.js";
+import {
+  ChannelCollectionInServer,
+  ServerCategoryCollection,
+  ServerMemberCollection,
+  RoleCollection,
+} from "../collections/index.js";
 import { AutumnFile, Base, Category, Role } from "./index.js";
 import { PermissionsBitField } from "../permissions/ops.js";
 
