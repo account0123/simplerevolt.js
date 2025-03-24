@@ -14,6 +14,7 @@ import {
 } from "./collections/index.js";
 import { Channel, Emoji, Message, PublicBot, Role, Server, ServerMember, User } from "./models/index.js";
 import { ConnectionState, handleEventV1 } from "./events/index.js";
+import { SimpleRequest } from "./rest/index.js";
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
@@ -123,7 +124,7 @@ export type ClientOptions = Partial<EventClientOptions> & {
 };
 
 export class Client extends AsyncEventEmitter<Events> {
-  api: API;
+  api: SimpleRequest;
   #connectionFailureCount = 0;
   #reconnectTimeout: number | undefined;
   #session: Session | undefined;
@@ -171,9 +172,11 @@ export class Client extends AsyncEventEmitter<Events> {
       },
       ...options,
     };
-    this.api = new API({
-      baseURL: this.options.baseURL,
-    });
+    this.api = new SimpleRequest(
+      new API({
+        baseURL: this.options.baseURL,
+      }),
+    );
     const setReady = (ready: boolean) => {
       if (typeof ready != "boolean") throw new Error("ready must be a boolean");
       this.ready = ready;
@@ -261,12 +264,14 @@ export class Client extends AsyncEventEmitter<Events> {
    * Update API object to use authentication.
    */
   #updateHeaders() {
-    this.api = new API({
-      baseURL: this.options.baseURL,
-      authentication: {
-        revolt: this.#session,
-      },
-    });
+    this.api = new SimpleRequest(
+      new API({
+        baseURL: this.options.baseURL,
+        authentication: {
+          revolt: this.#session,
+        },
+      }),
+    );
   }
 
   /**

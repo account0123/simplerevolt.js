@@ -20,7 +20,6 @@ export class BotCollection extends CachedCollection<OwnedBot> {
   async fetch(id: string) {
     // result: {bot: Bot, user: User}
     const result = await this.client.api.get(`/bots/${id as ""}`);
-    if (!result) return;
     const data: BotWithUserResponse = Object.assign(result.bot, { user: result.user });
     return this.create(data);
   }

@@ -153,7 +153,7 @@ export class Channel extends Base {
    * Delete or leave a channel
    * @param leaveSilently Whether to not send a message on leave
    */
-  async delete(leaveSilently?: boolean) {
+  async delete(leaveSilently: boolean = false) {
     await this.client.api.delete(`/channels/${this.id as ""}`, {
       leave_silently: leaveSilently,
     });
