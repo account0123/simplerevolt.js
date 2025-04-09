@@ -47,6 +47,7 @@ export { ConnectionState, EventClient } from "./events/EventClient.js";
 
 // Permissions
 export { BitField } from "./utils/BitField.js";
+export type { RecursiveReadonlyArray, BitFieldResolvable } from "./utils/BitField.js";
 export { PermissionsBitField } from "./permissions/PermissionsBitField.js";
 export { PermissionOverrides } from "./permissions/PermissionOverrides.js";
 export {
