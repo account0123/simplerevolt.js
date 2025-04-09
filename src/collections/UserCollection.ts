@@ -13,6 +13,35 @@ export class UserCollection extends CachedCollection<User> {
   }
 
   /**
+   * Accept another user's friend request.
+   * @throws RevoltAPIError
+   */
+  async acceptFriend(id: string) {
+    const result = await this.client.api.put(`/users/${id as ""}/friend`);
+    return result && this.create(result);
+  }
+
+  /**
+   * Block another user by their id.
+   * @throws RevoltAPIError
+   */
+  async block(id: string) {
+    const result = await this.client.api.put(`/users/${id as ""}/block`);
+    return result && this.create(result);
+  }
+
+  /**
+   * Send a friend request to another user by their username.
+   * @param username Username and discriminator combo separated by #
+   * @throws RevoltAPIError
+   */
+  async addFriend(username: string) {
+    if (!username.includes("#")) throw new RJSError(ErrorCodes.UserNoDiscriminator, "Since revolt api v8 username#discriminator combo is required to send friend request.");
+    const result = await this.client.api.post("/users/friend", { username});
+    return this.create(result);
+  }
+
+  /**
    * Creates and caches an user instance, overwriting any existing user with the same ID.
    */
   create(data: ApiUser) {
@@ -33,6 +62,15 @@ export class UserCollection extends CachedCollection<User> {
     }
     const result = await this.client.api.get(`/users/${userId as ""}/dm`);
     return this.client.channels.create(result);
+  }
+
+  /**
+   * Remove a friend by their id. Or deny a friend request.
+   * @throws RevoltAPIError
+   */
+  async deleteFriend(id: string) {
+    const result = await this.client.api.delete(`/users/${id as ""}/friend`);
+    return this.create(result);
   }
 
   /**
@@ -64,6 +102,22 @@ export class UserCollection extends CachedCollection<User> {
 
   async fetch(id: string) {
     const result = await this.client.api.get(`/users/${id as ""}`);
+    return this.create(result);
+  }
+
+  /**
+   * Retrieve a list of mutual friends and servers with another user.
+   * @throws RevoltAPIError
+   */
+  async fetchMutual(id: string): Promise<{ users: string[]; servers: string[]; }> {
+    return this.client.api.get(`/users/${id as ""}/mutual`);
+  }
+
+  /**
+   * Unblock another user by their id.
+   */
+  async unblock(id: string) {
+    const result = await this.client.api.delete(`/users/${id as ""}/block`);
     return this.create(result);
   }
 }

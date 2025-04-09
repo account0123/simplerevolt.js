@@ -71,6 +71,14 @@ export class User extends Base {
     return this.ownerId != null;
   }
 
+  /**
+   * Block this user.
+   * @throws RevoltAPIError
+   */
+  block() {
+    return this.client.users.block(this.id);
+  }
+
   get dmChannel() {
     return this.client.users.getDMChannel(this.id);
   }
@@ -107,6 +115,14 @@ export class User extends Base {
     const result = await this.client.api.get(`/users/${this.id as ""}/flags`);
     this.flags = result.flags;
     return result.flags;
+  }
+
+  /**
+   * Retrieve a list of mutual friends and servers with this user.
+   * @throws RevoltAPIError
+   */
+  fetchMutual(): Promise<{ users: string[]; servers: string[] }> {
+    return this.client.users.fetchMutual(this.id);
   }
 
   /**
@@ -176,6 +192,14 @@ export class User extends Base {
 
   override toString() {
     return `<@${this.id}>`;
+  }
+
+  /**
+   * Unblock this user.
+   * @throws RevoltAPIError
+   */
+  unblock() {
+    return this.client.users.unblock(this.id);
   }
 
   override update(data: Partial<ApiUser>) {
