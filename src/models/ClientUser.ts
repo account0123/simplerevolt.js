@@ -1,7 +1,8 @@
 import type { User as ApiUser, BotWithUserResponse, DataChangeUsername, OwnedBotsResponse } from "revolt-api";
 
-import { OwnedBot, User } from "./index.js";
 import type { Client } from "../Client.js";
+import { User } from "./User.js";
+import { OwnedBot } from "./Bot.js";
 
 export class ClientUser extends User {
   constructor(client: Client, data: ApiUser) {

@@ -10,9 +10,12 @@ import {
 import type { APIRoutes } from "revolt-api/dist/routes";
 import { decodeTime, ulid } from "ulid";
 
-import { Base, type Message, type User } from "./index.js";
+import { Base } from "./Base.js";
 import type { Client } from "../Client.js";
-import { calculatePermission, Permission, PermissionsBitField } from "../permissions/index.js";
+import type { Message } from "./Message.js";
+import type { User } from "./User.js";
+import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
+import { Permission } from "../permissions/index.js";
 
 /**
  * Channel Class
@@ -87,10 +90,40 @@ export class Channel extends Base {
     }
   }
 
+  // Implementation for this as SavedMessages
+  calculatePermission() {
+    return Permission.GrantAllSafe;
+  }
+
+  /**
+   * Delete or leave a channel
+   * @param leaveSilently Whether to not send a message on leave
+   * @throws RevoltAPIError
+   */
+  delete(leaveSilently = false) {
+    return this.client.channels.delete(this.id, leaveSilently);
+  }
+
+  /**
+   * Edit a channel object by its id.
+   * @throws RevoltAPIError
+   */
+  edit(data: DataEditChannel) {
+    return this.client.channels.patch(this.id, data);
+  }
+
+  /**
+   * Fetch channel data by its id, add it to the cache, and return the instance.
+   * @throws RevoltAPIError
+   */
+  fetch() {
+    return this.client.channels.fetch(this.id);
+  }
+
   static from: (client: Client, data: ApiChannel) => Channel;
 
   /**
-   * Write to string as a channel mention
+   * Channel mention
    */
   override toString() {
     return `<#${this.id}>`;
@@ -128,7 +161,7 @@ export class Channel extends Base {
    * Permission the currently authenticated user has against this channel
    */
   get permission() {
-    return new PermissionsBitField(calculatePermission(this.client, this));
+    return new PermissionsBitField(this.calculatePermission());
   }
 
   /**
@@ -136,8 +169,15 @@ export class Channel extends Base {
    * @param permission Permission Names
    * @returns Whether we have this permission
    */
-  havePermission(...permission: (keyof typeof Permission)[]) {
-    return this.permission.bitwiseAndEq(...permission.map((x) => Permission[x]));
+  havePermission(...permission: (keyof typeof Permission | number)[]) {
+    return this.permission.bitwiseAndEq(
+      ...permission.map((x) => {
+        if (typeof x == "number") return x;
+        if (typeof x == "string") return Permission[x] || (console.warn("Unknown permission: %s", x), 0);
+        console.warn("Expected permission name or number: %s", typeof x);
+        return 0;
+      }),
+    );
   }
 
   /**
@@ -150,16 +190,6 @@ export class Channel extends Base {
   }
 
   /**
-   * Delete or leave a channel
-   * @param leaveSilently Whether to not send a message on leave
-   */
-  async delete(leaveSilently: boolean = false) {
-    await this.client.api.delete(`/channels/${this.id as ""}`, {
-      leave_silently: leaveSilently,
-    });
-  }
-
-  /**
    * Fetch a channel's webhooks
    * @requires `TextChannel`, `Group`
    */
@@ -167,14 +197,6 @@ export class Channel extends Base {
     const webhooks = await this.client.api.get(`/channels/${this.id as ""}/webhooks`);
 
     return webhooks.map((webhook) => this.client.channelWebhooks.create(this, webhook));
-  }
-
-  /**
-   * Edit a channel
-   * @param data Changes
-   */
-  async edit(data: DataEditChannel) {
-    await this.client.api.patch(`/channels/${this.id as ""}`, data);
   }
 
   override update(_: Partial<ApiChannel>) {
@@ -201,6 +223,7 @@ export class TextBasedChannel extends Channel {
 
   /**
    * Fetch a message by its ID
+   * @throws RevoltAPIError
    */
   async fetchMessage(messageId: string) {
     const message = await this.client.api.get(`/channels/${this.id as ""}/messages/${messageId as ""}`);
@@ -211,6 +234,7 @@ export class TextBasedChannel extends Channel {
   /**
    * Fetch multiple messages from a channel
    * @param params Message fetching route data
+   * @throws RevoltAPIError
    */
   async fetchMessages(
     params?: (APIRoutes & {
@@ -225,6 +249,7 @@ export class TextBasedChannel extends Channel {
 
   /**
    * Fetch multiple messages from a channel including the users that sent them
+   * @throws RevoltAPIError
    */
   async fetchMessagesWithUsers(
     params?: Omit<
@@ -248,6 +273,7 @@ export class TextBasedChannel extends Channel {
 
   /**
    * Search for messages
+   * @throws RevoltAPIError
    */
   async search(params: Omit<DataMessageSearch, "include_users">) {
     const messages = (await this.client.api.post(`/channels/${this.id as ""}/search`, params)) as ApiMessage[];
@@ -257,6 +283,7 @@ export class TextBasedChannel extends Channel {
 
   /**
    * Search for messages including the users that sent them
+   * @throws RevoltAPIError
    */
   async searchWithUsers(params: Omit<DataMessageSearch, "include_users">) {
     const data = (await this.client.api.post(`/channels/${this.id as ""}/search`, {
@@ -298,9 +325,12 @@ export class TextBasedChannel extends Channel {
   }
 
   /**
-   * Send a message
+   * Send a message.
+   *
+   * Content starting with `/s ` sends a silent message.
    * @param data Either the message as a string or message sending route data
    * @returns Sent message
+   * @throws RevoltAPIError
    */
   async sendMessage(data: string | DataMessageSend, idempotencyKey: string = ulid()) {
     const msg: DataMessageSend = typeof data == "string" ? { content: data } : data;
@@ -312,18 +342,24 @@ export class TextBasedChannel extends Channel {
       msg.flags |= 1;
     }
 
-    const message = await this.client.api.post(`/channels/${this.id as ""}/messages`, msg, {
-      headers: {
-        "Idempotency-Key": idempotencyKey,
-      },
-    });
-
-    return this.client.messages.create(message);
+    try {
+      const message = await this.client.api.post(`/channels/${this.id as ""}/messages`, msg, {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      });
+      return this.client.messages.create(message);
+    } catch (error) {
+      // Propagate error
+      throw error;
+    }
   }
+
   /**
    * Set role permissions
    * @param role_id Role Id, set to 'default' to affect all users
    * @param permissions Permission value
+   * @throws RevoltAPIError
    */
   async setPermissions(role_id = "default", permissions: Override) {
     return await this.client.api.put(`/channels/${this.id as ""}/permissions/${role_id as ""}`, {

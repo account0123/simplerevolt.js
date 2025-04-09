@@ -15,7 +15,12 @@ import type {
   User as ApiUser,
 } from "revolt-api";
 
-import { Client, Relationship, Server, Channel, Message, Group, TextBasedChannel } from "../index.js";
+import type { Client } from "../Client.js";
+import type { Group } from "../models/GroupChannel.js";
+import type { Message } from "../models/Message.js";
+import type { TextBasedChannel } from "../models/Channel.js";
+
+import { Relationship } from "../models/User.js";
 
 /**
  * Version 1 of the events protocol
@@ -367,7 +372,7 @@ export async function handleEvent(client: Client, event: ServerMessage, setReady
     }
     case "ChannelCreate": {
       if (!client.channels.cache.has(event._id)) {
-        client.channels._add(Channel.from(client, event));
+        client.channels.create(event);
       }
       break;
     }
@@ -393,7 +398,7 @@ export async function handleEvent(client: Client, event: ServerMessage, setReady
           }
         }
 
-        client.channels.updateItem(event.id, changes);
+        client.channels.update(event.id, changes);
         client.emit("channelUpdate", channel, previousChannel);
       }
       break;
@@ -456,9 +461,9 @@ export async function handleEvent(client: Client, event: ServerMessage, setReady
     }
     case "ServerCreate": {
       if (!client.servers.cache.has(event.server._id)) {
-        client.servers._add(new Server(client, event.server));
+        client.servers.create(event.server);
         for (const channel of event.channels) {
-          client.channels._add(new Channel(client, channel));
+          client.channels.create(channel);
         }
       }
       break;

@@ -1,8 +1,7 @@
 import type { ProtocolV1 } from "./v1.js";
 
 export { handleEvent as handleEventV1 } from "./v1.js";
-
-export * from "./EventClient.js";
+export { ConnectionState, EventClient } from "./EventClient.js";
 
 /**
  * Available protocols to connect with

@@ -1,14 +1,17 @@
 import { Server as ApiServer, FieldsServer } from "revolt-api";
 
 import type { Client } from "../Client.js";
-import {
-  ChannelCollectionInServer,
-  ServerCategoryCollection,
-  ServerMemberCollection,
-  RoleCollection,
-} from "../collections/index.js";
-import { AutumnFile, Base, Category, Role } from "./index.js";
-import { PermissionsBitField } from "../permissions/ops.js";
+import { Base } from "./Base.js";
+import { AutumnFile } from "./File.js";
+import { Category } from "./ServerCategory.js";
+import { Role } from "./Role.js";
+import { ChannelCollectionInServer } from "../collections/ChannelCollection.js";
+import { RoleCollection } from "../collections/RoleCollection.js";
+import { ServerCategoryCollection } from "../collections/ServerCategoryCollection.js";
+import { ServerMemberCollection } from "../collections/ServerMemberCollection.js";
+import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
+import { ALLOW_IN_TIMEOUT, Permission, PermissionOverrides } from "../permissions/index.js";
+import { BitField } from "../utils/BitField.js";
 
 export class Server extends Base {
   // @ts-ignore unused
@@ -37,6 +40,43 @@ export class Server extends Base {
     this.update(data);
   }
 
+  calculatePermission() {
+    const user = this.client.user;
+    if (user?.permission) return user.permission;
+    // 1. Check if owner.
+    if (this.ownerId == user?.id) {
+      return Permission.GrantAllSafe;
+    } else {
+      // 2. Get ServerMember.
+      const member = this.member;
+      if (!member) return 0;
+
+      // 3. Apply allows from default_permissions.
+      let perm = BitField.resolve(this.defaultPermissions);
+
+      // 4. If user has roles, iterate in order.
+      if (member.roles && this.roles) {
+        // 5. Apply allows and denies from roles.
+        const permissions = member.orderedRoles.map(
+          (role) => role.permissions || new PermissionOverrides(this, { id: role.id, a: 0, d: 0 }),
+        );
+
+        for (const permission of permissions) {
+          const allow = BitField.resolve(permission.allow);
+          const deny = BitField.resolve(permission.deny);
+          perm = perm.or(allow).and(deny.not());
+        }
+      }
+
+      // 5. Revoke permissions if ServerMember is timed out.
+      if (member.timeout && member.timeout > new Date()) {
+        perm = perm.and(ALLOW_IN_TIMEOUT);
+      }
+
+      return perm.toNumber();
+    }
+  }
+
   clear(properties: FieldsServer[]) {
     for (const prop of properties) {
       switch (prop) {
@@ -54,6 +94,13 @@ export class Server extends Base {
           break;
       }
     }
+  }
+
+  /**
+   * Member reference of the current user
+   */
+  get member() {
+    return this.client.user && this.members.resolve(this.client.user.id);
   }
 
   resetSyncStatus() {

@@ -1,7 +1,9 @@
 import type { Member as ApiMember } from "revolt-api";
 
-import { AutumnFile, Base, Server } from "./index.js";
-import { RoleCollection } from "../collections/index.js";
+import { RoleCollection } from "../collections/RoleCollection.js";
+import { Base } from "./Base.js";
+import { AutumnFile } from "./File.js";
+import type { Server } from "./Server.js";
 
 export class ServerMember extends Base {
   avatar: AutumnFile | null = null;

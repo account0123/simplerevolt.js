@@ -1,8 +1,13 @@
 import type { Message as ApiMessage, DataEditMessage, DataMessageSend, Embed } from "revolt-api";
 
 import type { Client } from "../Client.js";
-import { Base, MessageEmbed, ServerChannel, TextBasedChannel, type ServerMember, type User } from "./index.js";
 import { MessageReactions } from "./MessageReactions.js";
+import { Base } from "./Base.js";
+import { MessageEmbed } from "./MessageEmbed.js";
+import type { ServerMember } from "./ServerMember.js";
+import type { User } from "./User.js";
+import type { TextBasedChannel } from "./Channel.js";
+import { ServerChannel } from "./ServerChannel.js";
 
 export class Message extends Base {
   readonly authorId: string;
@@ -53,7 +58,7 @@ export class Message extends Base {
   }
 
   get channel() {
-    return this.client.channels.resolve(this.channelId) as TextBasedChannel | null;
+    return this.client.channels.resolve(this.channelId) as TextBasedChannel;
   }
 
   /**
@@ -65,20 +70,26 @@ export class Message extends Base {
 
   /**
    * Delete a message
+   * @throws RevoltAPIError
    */
-  async delete() {
+  delete() {
     return this.client.messages.delete(this.id);
   }
 
   /**
-   * Edit a message
+   * Edit this message.
+   * @throws RevoltAPIError
    */
-  async edit(data: DataEditMessage) {
-    const result: ApiMessage = await this.client.api.patch(
-      `/channels/${this.channelId as ""}/messages/${this.id as ""}`,
-      data,
-    );
-    return result && this.client.messages.create(result, false);
+  edit(data: DataEditMessage) {
+    return this.client.messages.patch(this.id, this.channelId, data);
+  }
+
+  /**
+   * Fetch this message.
+   * @throws RevoltAPIError
+   */
+  fetch() {
+    return this.channel.fetchMessage(this.id);
   }
 
   /**
@@ -91,6 +102,7 @@ export class Message extends Base {
   /**
    * React to a message
    * @param emoji Unicode or emoji ID
+   * @throws RevoltAPIError
    */
   async react(emoji: string) {
     return await this.client.api.put(
@@ -101,6 +113,7 @@ export class Message extends Base {
   /**
    * Un-react from a message
    * @param emoji Unicode or emoji ID
+   * @throws RevoltAPIError
    */
   async unreact(emoji: string) {
     return await this.client.api.delete(
@@ -110,6 +123,7 @@ export class Message extends Base {
 
   /**
    * Reply to Message
+   * @throws RevoltAPIError
    */
   reply(
     data:

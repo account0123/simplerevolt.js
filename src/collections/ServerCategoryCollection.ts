@@ -1,4 +1,5 @@
-import { Category, Server } from "../models/index.js";
+import type { Server } from "../models/Server.js";
+import { Category } from "../models/ServerCategory.js";
 import { CachedCollection } from "./DataCollection.js";
 
 export class ServerCategoryCollection extends CachedCollection<Category> {

@@ -1,19 +1,12 @@
 import { User as ApiUser } from "revolt-api";
 
 import type { Client } from "../Client.js";
-import { User } from "../models/index.js";
 import { CachedCollection } from "./DataCollection.js";
+import { User } from "../models/User.js";
 
 export class UserCollection extends CachedCollection<User> {
   constructor(client: Client) {
     super(client, User);
-  }
-
-  override _add(user: User, cache = true) {
-    const existing = this.cache.get(user.id);
-    if (cache && existing) return existing;
-    this.cache.set(user.id, user);
-    return user;
   }
 
   /**

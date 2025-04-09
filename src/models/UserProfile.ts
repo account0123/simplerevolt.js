@@ -1,6 +1,6 @@
 import { UserProfile as ApiUserProfile } from "revolt-api";
-import { AutumnFile } from "./index.js";
 import { Client } from "../Client.js";
+import { AutumnFile } from "./File.js";
 
 export class UserProfile {
   content: string | null = null;

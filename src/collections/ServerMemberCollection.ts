@@ -1,18 +1,12 @@
 import { Member } from "revolt-api";
 
-import { type Server, ServerMember } from "../models/index.js";
 import { CachedCollection } from "./DataCollection.js";
+import { ServerMember } from "../models/ServerMember.js";
+import type { Server } from "../models/Server.js";
 
 export class ServerMemberCollection extends CachedCollection<ServerMember> {
   constructor(readonly server: Server) {
     super(server.client, ServerMember);
-  }
-
-  override _add(member: ServerMember) {
-    const existing = this.cache.get(member.id);
-    if (existing) return existing;
-    this.cache.set(member.id, member);
-    return member;
   }
 
   create(data: Member) {

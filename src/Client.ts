@@ -1,20 +1,30 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
 import { API, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
 
-import { EventClient, EventClientOptions } from "./events/EventClient.js";
-import {
-  BotCollection,
-  ChannelCollection,
-  ChannelUnreadCollection,
-  ChannelWebhookCollection,
-  EmojiCollection,
-  MessageCollection,
-  ServerCollection,
-  UserCollection,
-} from "./collections/index.js";
-import { Channel, Emoji, Message, PublicBot, Role, Server, ServerMember, User } from "./models/index.js";
-import { ConnectionState, handleEventV1 } from "./events/index.js";
-import { SimpleRequest } from "./rest/index.js";
+import { ConnectionState, EventClient, EventClientOptions } from "./events/EventClient.js";
+import { handleEventV1 } from "./events/index.js";
+
+// Collections
+import { BotCollection } from "./collections/BotCollection.js";
+import { ChannelCollection } from "./collections/ChannelCollection.js";
+import { ChannelUnreadCollection } from "./collections/ChannelUnreadCollection.js";
+import { ChannelWebhookCollection } from "./collections/ChannelWebhookCollection.js";
+import { EmojiCollection } from "./collections/EmojiCollection.js";
+import { MessageCollection } from "./collections/MessageCollection.js";
+import { ServerCollection } from "./collections/ServerCollection.js";
+import { UserCollection } from "./collections/UserCollection.js";
+
+import { SimpleRequest } from "./rest/Request.js";
+
+// Models
+import { PublicBot } from "./models/Bot.js";
+import { Channel } from "./models/Channel.js";
+import { Emoji } from "./models/Emoji.js";
+import { Message } from "./models/Message.js";
+import { Role } from "./models/Role.js";
+import { Server } from "./models/Server.js";
+import { ServerMember } from "./models/ServerMember.js";
+import { User } from "./models/User.js";
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
