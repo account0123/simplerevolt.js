@@ -4,7 +4,9 @@ import type { Client } from "../Client.js";
 import type { Server } from "../models/Server.js";
 import { CachedCollection } from "./DataCollection.js";
 import { Channel } from "../models/Channel.js";
-import { ServerChannel } from "../models/ServerChannel.js";
+import { ServerChannel, TextChannel, VoiceChannel } from "../models/ServerChannel.js";
+import { DMChannel } from "../models/DMChannel.js";
+import { Group } from "../models/GroupChannel.js";
 
 export class ChannelCollection extends CachedCollection<Channel> {
   constructor(client: Client) {
@@ -12,7 +14,23 @@ export class ChannelCollection extends CachedCollection<Channel> {
   }
 
   create(data: ApiChannel) {
-    const channel = Channel.from(this.client, data);
+    let channel;
+    switch (data.channel_type) {
+      case "SavedMessages":
+        channel = new Channel(this.client, data);
+        break;
+      case "DirectMessage":
+        channel = new DMChannel(this.client, data);
+        break;
+      case "Group":
+        channel = new Group(this.client, data);
+        break;
+      case "TextChannel":
+        channel = new TextChannel(this.client, data);
+        break;
+      case "VoiceChannel":
+        channel = new VoiceChannel(this.client, data);
+    }
     this.cache.set(data._id, channel);
     return channel;
   }

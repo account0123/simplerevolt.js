@@ -119,9 +119,7 @@ export class Channel extends Base {
   fetch() {
     return this.client.channels.fetch(this.id);
   }
-
-  static from: (client: Client, data: ApiChannel) => Channel;
-
+  
   /**
    * Channel mention
    */
