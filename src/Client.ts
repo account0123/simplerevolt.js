@@ -1,5 +1,5 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
-import { API, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
+import { API, Channel as ApiChannel, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
 
 import { ConnectionState, EventClient, EventClientOptions } from "./events/EventClient.js";
 import { handleEventV1 } from "./events/index.js";
@@ -18,13 +18,16 @@ import { SimpleRequest } from "./rest/Request.js";
 
 // Models
 import { PublicBot } from "./models/Bot.js";
-import { Channel } from "./models/Channel.js";
-import { Emoji } from "./models/Emoji.js";
-import { Message } from "./models/Message.js";
-import { Role } from "./models/Role.js";
-import { Server } from "./models/Server.js";
-import { ServerMember } from "./models/ServerMember.js";
-import { User } from "./models/User.js";
+import type { Channel } from "./models/Channel.js";
+import type { DMChannel } from "./models/DMChannel.js";
+import type { Emoji } from "./models/Emoji.js";
+import type { Group } from "./models/GroupChannel.js";
+import type { Message } from "./models/Message.js";
+import type { Role } from "./models/Role.js";
+import type { Server } from "./models/Server.js";
+import type { ServerMember } from "./models/ServerMember.js";
+import type { User } from "./models/User.js";
+
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
@@ -229,6 +232,32 @@ export class Client extends AsyncEventEmitter<Events> {
   async createBot(data: DataCreateBot) {
     const bot = await this.api.post("/bots/create", data);
     return this.bots.create(bot);
+  }
+
+  /**
+   * This fetches your direct messages, including any DM and group DM conversations.
+   * @returns Object containing the saved messages channel, direct messages, and groups
+   */
+  async fetchDMChannels() {
+    const result = await this.api.get("/users/dms") as ApiChannel[];
+    let channels: {savedMessages?: Channel, directMessages: DMChannel[], groups: Group[]} = {
+      directMessages: [],
+      groups: [],
+    }
+    result.map((channel) => this.channels.create(channel)).forEach((channel) => {
+      switch (channel.channelType) {
+        case "SavedMessages":
+          channels.savedMessages = channel;
+          break;
+        case "DirectMessage":
+          channels.directMessages.push(channel as DMChannel);
+          break;
+        case "Group":
+          channels.groups.push(channel as Group);
+          break;
+      }
+    });
+    return channels;
   }
 
   /**

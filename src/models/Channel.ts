@@ -119,7 +119,7 @@ export class Channel extends Base {
   fetch() {
     return this.client.channels.fetch(this.id);
   }
-  
+
   /**
    * Channel mention
    */
@@ -195,6 +195,37 @@ export class Channel extends Base {
     const webhooks = await this.client.api.get(`/channels/${this.id as ""}/webhooks`);
 
     return webhooks.map((webhook) => this.client.channelWebhooks.create(this, webhook));
+  }
+
+   /**
+   * Send a message.
+   *
+   * Content starting with `/s ` sends a silent message.
+   * @param data Either the message as a string or message sending route data
+   * @returns Sent message
+   * @throws RevoltAPIError
+   */
+   async sendMessage(data: string | DataMessageSend, idempotencyKey: string = ulid()) {
+    const msg: DataMessageSend = typeof data == "string" ? { content: data } : data;
+
+    // Mark as silent message
+    if (msg.content?.startsWith("/s ")) {
+      msg.content = msg.content.substring(3);
+      msg.flags ||= 1;
+      msg.flags |= 1;
+    }
+
+    try {
+      const message = await this.client.api.post(`/channels/${this.id as ""}/messages`, msg, {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      });
+      return this.client.messages.create(message);
+    } catch (error) {
+      // Propagate error
+      throw error;
+    }
   }
 
   override update(_: Partial<ApiChannel>) {
@@ -320,37 +351,6 @@ export class TextBasedChannel extends Channel {
       type: "EndTyping",
       channel: this.id,
     });
-  }
-
-  /**
-   * Send a message.
-   *
-   * Content starting with `/s ` sends a silent message.
-   * @param data Either the message as a string or message sending route data
-   * @returns Sent message
-   * @throws RevoltAPIError
-   */
-  async sendMessage(data: string | DataMessageSend, idempotencyKey: string = ulid()) {
-    const msg: DataMessageSend = typeof data == "string" ? { content: data } : data;
-
-    // Mark as silent message
-    if (msg.content?.startsWith("/s ")) {
-      msg.content = msg.content.substring(3);
-      msg.flags ||= 1;
-      msg.flags |= 1;
-    }
-
-    try {
-      const message = await this.client.api.post(`/channels/${this.id as ""}/messages`, msg, {
-        headers: {
-          "Idempotency-Key": idempotencyKey,
-        },
-      });
-      return this.client.messages.create(message);
-    } catch (error) {
-      // Propagate error
-      throw error;
-    }
   }
 
   /**

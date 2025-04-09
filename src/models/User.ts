@@ -1,4 +1,4 @@
-import type { User as ApiUser, DataEditUser, RelationshipStatus, UserStatus } from "revolt-api";
+import type { User as ApiUser, DataEditUser, DataMessageSend, RelationshipStatus, UserStatus } from "revolt-api";
 
 import type { Client } from "../Client.js";
 import { Permission, U32_MAX, UserPermission } from "../permissions/index.js";
@@ -71,6 +71,10 @@ export class User extends Base {
     return this.ownerId != null;
   }
 
+  get dmChannel() {
+    return this.client.users.getDMChannel(this.id);
+  }
+
   /**
    * Edits the user
    * @throws RevoltAPIError
@@ -87,6 +91,9 @@ export class User extends Base {
     return this.client.users.fetch(this.id);
   }
 
+  /**
+   * @returns default avatar
+   */
   async fetchDefaultAvatar() {
     const result = await this.client.api.get(`/users/${this.id as ""}/default_avatar`);
     return new TextEncoder().encode(result);
@@ -122,6 +129,15 @@ export class User extends Base {
    */
   get permission() {
     return this.privileged ? Permission.GrantAllSafe : 0;
+  }
+
+  /**
+   * Send a message to this user. If the user does not have a DM channel open, one will be opened.
+   * @throws RevoltAPIError
+   */
+  async sendMessage(data: string | DataMessageSend, idempotencyKey?: string) {
+    const dm = await this.client.users.createDMChannel(this.id, false);
+    return dm.sendMessage(data, idempotencyKey);
   }
 
   /**
