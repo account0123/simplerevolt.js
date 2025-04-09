@@ -222,13 +222,29 @@ export class Client extends AsyncEventEmitter<Events> {
     this.events.on("event", (event) => handleEventV1(this, event, setReady.bind(this)));
   }
 
+  /**
+   *
+   * @throws RevoltAPIError
+   */
   async createBot(data: DataCreateBot) {
     const bot = await this.api.post("/bots/create", data);
     return this.bots.create(bot);
   }
 
   /**
+   * Retrieve your user information and updates the client's user instance.
+   * @throws RevoltAPIError
+   */
+  async fetchUser() {
+    if (arguments.length) console.warn("Client#fetchUser expects 0 arguments, but got %d", arguments.length);
+    const data = await this.api.get("/users/@me");
+    this.user = this.users.create(data);
+    return this.user;
+  }
+
+  /**
    * Fetch details of a public (or owned) bot by its id.
+   * @throws RevoltAPIError
    */
   async fetchPublicBot(id: string) {
     const data = await this.api.get(`/bots/${id as ""}/invite`);

@@ -10,6 +10,10 @@ export class ClientUser extends User {
     this.update(data);
   }
 
+  override async fetch() {
+    return this.client.fetchUser();
+  }
+
   async fetchOwnedBots() {
     const bots: OwnedBot[] = [];
     const result = (await this.client.api.get("/bots/@me")) as OwnedBotsResponse;

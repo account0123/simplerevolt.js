@@ -80,6 +80,29 @@ export class User extends Base {
   }
 
   /**
+   * Retrieve a user's information.
+   * @throws RevoltAPIError
+   */
+  fetch() {
+    return this.client.users.fetch(this.id);
+  }
+
+  async fetchDefaultAvatar() {
+    const result = await this.client.api.get(`/users/${this.id as ""}/default_avatar`);
+    return new TextEncoder().encode(result);
+  }
+
+  /**
+   * Retrieve a user's flags.
+   * @throws RevoltAPIError
+   */
+  async fetchFlags() {
+    const result = await this.client.api.get(`/users/${this.id as ""}/flags`);
+    this.flags = result.flags;
+    return result.flags;
+  }
+
+  /**
    * Fetch the profile of a user
    * @returns The profile of the user
    * @throws RevoltAPIError
