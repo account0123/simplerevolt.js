@@ -36,8 +36,12 @@ export class UserCollection extends CachedCollection<User> {
    * @throws RevoltAPIError
    */
   async addFriend(username: string) {
-    if (!username.includes("#")) throw new RJSError(ErrorCodes.UserNoDiscriminator, "Since revolt api v8 username#discriminator combo is required to send friend request.");
-    const result = await this.client.api.post("/users/friend", { username});
+    if (!username.includes("#"))
+      throw new RJSError(
+        ErrorCodes.UserNoDiscriminator,
+        "Since revolt api v8 username#discriminator combo is required to send friend request.",
+      );
+    const result = await this.client.api.post("/users/friend", { username });
     return this.create(result);
   }
 
@@ -52,7 +56,7 @@ export class UserCollection extends CachedCollection<User> {
 
   /**
    * Open a DM with another user, or returns DM channel if exists.
-   * @param userId 
+   * @param userId
    * @param force - Whether to force open a new DM channel
    */
   async createDMChannel(userId: string, force = true) {
@@ -77,7 +81,9 @@ export class UserCollection extends CachedCollection<User> {
    * Filters DM channels by user id
    */
   getDMChannel(userId: string) {
-    return this.client.channels.cache.find(channel => channel.channelType == "DirectMessage" && (channel as DMChannel).recipientId == userId) as DMChannel | undefined;
+    return this.client.channels.cache.find(
+      (channel) => channel.channelType == "DirectMessage" && (channel as DMChannel).recipientId == userId,
+    ) as DMChannel | undefined;
   }
 
   /**
@@ -109,7 +115,7 @@ export class UserCollection extends CachedCollection<User> {
    * Retrieve a list of mutual friends and servers with another user.
    * @throws RevoltAPIError
    */
-  async fetchMutual(id: string): Promise<{ users: string[]; servers: string[]; }> {
+  async fetchMutual(id: string): Promise<{ users: string[]; servers: string[] }> {
     return this.client.api.get(`/users/${id as ""}/mutual`);
   }
 

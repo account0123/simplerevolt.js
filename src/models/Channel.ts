@@ -197,7 +197,7 @@ export class Channel extends Base {
     return webhooks.map((webhook) => this.client.channelWebhooks.create(this, webhook));
   }
 
-   /**
+  /**
    * Send a message.
    *
    * Content starting with `/s ` sends a silent message.
@@ -205,7 +205,7 @@ export class Channel extends Base {
    * @returns Sent message
    * @throws RevoltAPIError
    */
-   async sendMessage(data: string | DataMessageSend, idempotencyKey: string = ulid()) {
+  async sendMessage(data: string | DataMessageSend, idempotencyKey: string = ulid()) {
     const msg: DataMessageSend = typeof data == "string" ? { content: data } : data;
 
     // Mark as silent message

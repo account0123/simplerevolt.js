@@ -28,7 +28,6 @@ import type { Server } from "./models/Server.js";
 import type { ServerMember } from "./models/ServerMember.js";
 import type { User } from "./models/User.js";
 
-
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
 
@@ -239,24 +238,26 @@ export class Client extends AsyncEventEmitter<Events> {
    * @returns Object containing the saved messages channel, direct messages, and groups
    */
   async fetchDMChannels() {
-    const result = await this.api.get("/users/dms") as ApiChannel[];
-    let channels: {savedMessages?: Channel, directMessages: DMChannel[], groups: Group[]} = {
+    const result = (await this.api.get("/users/dms")) as ApiChannel[];
+    let channels: { savedMessages?: Channel; directMessages: DMChannel[]; groups: Group[] } = {
       directMessages: [],
       groups: [],
-    }
-    result.map((channel) => this.channels.create(channel)).forEach((channel) => {
-      switch (channel.channelType) {
-        case "SavedMessages":
-          channels.savedMessages = channel;
-          break;
-        case "DirectMessage":
-          channels.directMessages.push(channel as DMChannel);
-          break;
-        case "Group":
-          channels.groups.push(channel as Group);
-          break;
-      }
-    });
+    };
+    result
+      .map((channel) => this.channels.create(channel))
+      .forEach((channel) => {
+        switch (channel.channelType) {
+          case "SavedMessages":
+            channels.savedMessages = channel;
+            break;
+          case "DirectMessage":
+            channels.directMessages.push(channel as DMChannel);
+            break;
+          case "Group":
+            channels.groups.push(channel as Group);
+            break;
+        }
+      });
     return channels;
   }
 
