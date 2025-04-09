@@ -7,10 +7,17 @@ import type {
 } from "revolt-api";
 import type { APIRoutes } from "revolt-api/dist/routes";
 
-import { AutumnFile, type Message, ServerMember, TextBasedChannel, type User } from "./index.js";
-import { Permission, PermissionsBitField, PermissionOverrides } from "../permissions/index.js";
+import { ALLOW_IN_TIMEOUT, Permission, PermissionOverrides } from "../permissions/index.js";
 import type { Client } from "../Client.js";
-import { PermissionOverrideCollection } from "../collections/index.js";
+import { PermissionOverrideCollection } from "../collections/PermissionOverrideCollection.js";
+import { TextBasedChannel } from "./Channel.js";
+import { AutumnFile } from "./File.js";
+import type { Message } from "./Message.js";
+import type { ServerMember } from "./ServerMember.js";
+import type { User } from "./User.js";
+import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
+import Long from "long";
+import { BitField } from "../utils/BitField.js";
 
 type ServerChannelData = Extract<ApiChannel, { channel_type: "TextChannel" | "VoiceChannel" }>;
 export class ServerChannel extends TextBasedChannel {
@@ -52,12 +59,66 @@ export class ServerChannel extends TextBasedChannel {
     );
   }
 
+  override calculatePermission() {
+    const user = this.client.user;
+    if (user?.permission) return user.permission;
+    const server = this.server;
+    if (!server) return 0;
+
+    // 3. If server owner, just grant all permissions.
+    if (server?.ownerId == user?.id) {
+      return Permission.GrantAllSafe;
+    } else {
+      // 4. Get ServerMember.
+      const member = server.member;
+
+      if (!member) return 0;
+
+      // 5. Calculate server base permissions.
+      let perm = Long.fromNumber(server.calculatePermission());
+
+      // 6. Apply default allows and denies for channel.
+      if (this.defaultPermissions) {
+        const allow = BitField.resolve(this.defaultPermissions.allow);
+        const deny = BitField.resolve(this.defaultPermissions.deny);
+        perm = perm.or(allow).and(deny.not());
+      }
+
+      // 7. If user has roles, iterate in order.
+      if (member.roles && this.rolePermissions && server.roles) {
+        // 8. Apply allows and denies from roles.
+        const roleIds = member.orderedRoles.map(({ id }) => id);
+
+        for (const id of roleIds) {
+          const override = this.rolePermissions.resolve(id);
+          if (override) {
+            const allow = BitField.resolve(override.allow);
+            const deny = BitField.resolve(override.deny);
+            perm = perm.or(allow).and(deny.not());
+          }
+        }
+      }
+
+      // 8. Revoke permissions if ServerMember is timed out.
+      if (member.timeout && member.timeout > new Date()) {
+        perm = perm.and(ALLOW_IN_TIMEOUT);
+      }
+
+      return perm.toNumber();
+    }
+  }
+  /**
+   * Creates an invite to this channel.
+   * @throws RevoltAPIError
+   */
   async createInvite() {
+    // TODO: Invite model
     return await this.client.api.post(`/channels/${this.id as ""}/invites`);
   }
 
   /**
    * Delete many messages by their IDs
+   * @throws RevoltAPIError
    */
   async deleteMessages(ids: string[]) {
     await this.client.api.delete(`/channels/${this.id as ""}/messages/bulk`, {
@@ -66,7 +127,8 @@ export class ServerChannel extends TextBasedChannel {
   }
 
   /**
-   * Fetch multiple messages from a channel including the users that sent them
+   * Fetch multiple messages from a channel including the users that sent them.
+   * @throws RevoltAPIError
    */
   override async fetchMessagesWithUsers(
     params?: Omit<
@@ -91,12 +153,20 @@ export class ServerChannel extends TextBasedChannel {
     };
   }
 
+  /**
+   * Permission the currently authenticated user has against this channel
+   */
+  override get permission(): PermissionsBitField {
+    return new PermissionsBitField(this.calculatePermission());
+  }
+
   get server() {
     return this.client.servers.resolve(this.serverId);
   }
 
   /**
    * Search for messages including the users that sent them
+   * @throws RevoltAPIError
    */
   override async searchWithUsers(params: Omit<DataMessageSearch, "include_users">) {
     const data = (await this.client.api.post(`/channels/${this.id as ""}/search`, {

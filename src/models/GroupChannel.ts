@@ -1,7 +1,9 @@
 import type { Channel as ApiChannel } from "revolt-api";
-
-import { AutumnFile, Channel, type User } from "./index.js";
 import { Client } from "../Client.js";
+import { Channel } from "./Channel.js";
+import { AutumnFile } from "./File.js";
+import type { User } from "./User.js";
+import { DEFAULT_PERMISSION_DIRECT_MESSAGE, Permission } from "../permissions/index.js";
 
 export type GroupData = Extract<ApiChannel, { channel_type: "Group" }>;
 
@@ -22,6 +24,7 @@ export class Group extends Channel {
     this.ownerId = data.owner;
     this.recipientIds = new Set(data.recipients);
   }
+
   /**
    * Add a user to a group
    * @returns Nothing
@@ -29,6 +32,13 @@ export class Group extends Channel {
   async addMember(userId: string) {
     return await this.client.api.put(`/channels/${this.id as ""}/recipients/${userId as ""}`);
   }
+
+  override calculatePermission() {
+    const user = this.client.user;
+    if (user?.permission) return user.permission;
+    return this.ownerId == user?.id ? Permission.GrantAllSafe : (this.permissions ?? DEFAULT_PERMISSION_DIRECT_MESSAGE);
+  }
+
   /**
    * Fetch a channel's members.
    * @requires `Group`

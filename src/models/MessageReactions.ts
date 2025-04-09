@@ -1,6 +1,6 @@
 import { Collection } from "@discordjs/collection";
-import type { Message } from "./index.js";
 import { Interactions } from "revolt-api";
+import type { Message } from "./Message.js";
 
 export type MessageReactionsData = Record<string, string[]>;
 export class MessageReactions {
@@ -27,7 +27,8 @@ export class MessageReactions {
   }
 
   /**
-   * Clear all reactions from this message
+   * Clear all reactions from this message.
+   * @throws RevoltAPIError
    */
   async clearReactions() {
     const result = await this.client.api.delete(

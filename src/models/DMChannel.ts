@@ -1,7 +1,12 @@
 import type { Channel } from "revolt-api";
 
-import { TextBasedChannel } from "./index.js";
 import { Client } from "../Client.js";
+import { TextBasedChannel } from "./Channel.js";
+import {
+  DEFAULT_PERMISSION_DIRECT_MESSAGE,
+  DEFAULT_PERMISSION_VIEW_ONLY,
+  UserPermission,
+} from "../permissions/index.js";
 
 type DMChannelData = Extract<Channel, { channel_type: "DirectMessage" }>;
 export class DMChannel extends TextBasedChannel {
@@ -15,6 +20,17 @@ export class DMChannel extends TextBasedChannel {
       this.recipientId = data.recipients[0] || null;
     }
     this.update(data);
+  }
+
+  // Implementation for this as DirectMessage
+  override calculatePermission() {
+    if (this.client.user?.permission) return this.client.user.permission;
+    const user_permissions = this.recipient?.userPermission || 0;
+    if (user_permissions & UserPermission.SendMessage) {
+      return DEFAULT_PERMISSION_DIRECT_MESSAGE;
+    } else {
+      return DEFAULT_PERMISSION_VIEW_ONLY;
+    }
   }
 
   get recipient() {

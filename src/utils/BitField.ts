@@ -1,6 +1,6 @@
 import Long from "long";
-import { RecursiveReadonlyArray } from "../index.js";
 
+export interface RecursiveReadonlyArray<ItemType> extends ReadonlyArray<ItemType | RecursiveReadonlyArray<ItemType>> {}
 export type BitFieldResolvable<Flags extends string, Type extends number | bigint | Long> =
   | RecursiveReadonlyArray<Flags | Type | `${bigint}` | Readonly<BitField<Flags>>>
   | Flags

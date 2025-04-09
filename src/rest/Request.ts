@@ -1,9 +1,9 @@
 import { API } from "revolt-api";
 import { APIRoutes } from "revolt-api/dist/routes";
 import type { AxiosError, AxiosRequestConfig } from "axios";
-import { isAxiosError, RequestOptions } from "./index.js";
 import { RevoltAPIError } from "../errors/RevoltAPIError.js";
 
+// Types from revolt-api
 type Methods = APIRoutes["method"];
 type PickRoutes<Method extends Methods> = APIRoutes & {
   method: Method;
@@ -13,6 +13,11 @@ type Count<
   SubStr extends string,
   Matches extends null[] = [],
 > = Str extends `${infer _}${SubStr}${infer After}` ? Count<After, SubStr, [...Matches, null]> : Matches["length"];
+
+export type RequestOptions = {
+  timeout: number;
+  retries: number;
+};
 
 export class SimpleRequest {
   options: RequestOptions;
@@ -173,4 +178,9 @@ export class SimpleRequest {
     }
     return response;
   }
+}
+
+export function isAxiosError(error: any): error is AxiosError {
+  if (error && error.isAxiosError) return true;
+  return false;
 }

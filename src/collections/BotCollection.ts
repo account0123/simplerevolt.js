@@ -1,6 +1,6 @@
 import { BotWithUserResponse } from "revolt-api";
-import { Client } from "../Client.js";
-import { OwnedBot } from "../models/index.js";
+import type { Client } from "../Client.js";
+import { OwnedBot } from "../models/Bot.js";
 import { CachedCollection } from "./DataCollection.js";
 
 export class BotCollection extends CachedCollection<OwnedBot> {
@@ -16,6 +16,7 @@ export class BotCollection extends CachedCollection<OwnedBot> {
 
   /**
    * Fetch details of a bot client owns by its id.
+   * @throws RevoltAPIError
    */
   async fetch(id: string) {
     // result: {bot: Bot, user: User}
@@ -26,6 +27,7 @@ export class BotCollection extends CachedCollection<OwnedBot> {
 
   /**
    * Delete a bot by its id.
+   * @throws RevoltAPIError
    */
   async delete(id: string) {
     await this.client.api.delete(`/bots/${id as ""}`);

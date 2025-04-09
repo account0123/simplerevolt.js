@@ -56,7 +56,7 @@ export class CachedCollection<T extends Base> extends DataCollection<T> {
   private readonly _cache: Collection<string, T>;
   constructor(client: Client, holds: new (...args: any[]) => T, iterable?: Iterable<T>) {
     super(client, holds);
-    this._cache = makeCache(this.constructor, this.holds, this.constructor) as Collection<string, T>;
+    this._cache = makeCache(this.constructor, this.constructor) as Collection<string, T>;
 
     if (iterable) {
       for (const item of iterable) {
@@ -70,13 +70,15 @@ export class CachedCollection<T extends Base> extends DataCollection<T> {
 
   _add(data: T, cache = true, { id }: { id?: string; extras?: any[] } = {}) {
     const existing = this.cache.get(id ?? data.id);
+
     if (existing) {
-      if (cache) {
-        return existing;
-      }
-      return existing.clone();
+      return cache ? existing : existing.clone();
     }
-    if (cache) this.cache.set(id ?? data.id, data);
+
+    if (cache) {
+      this.cache.set(id ?? data.id, data);
+    }
+
     return data;
   }
 
@@ -120,7 +122,7 @@ export class LimitedCollection<K, V> extends Collection<K, V> {
 
 export const makeCache = makeLimitedCache({});
 export function makeLimitedCache<Key, Value>(settings: Record<string, LimitedCollectionOptions<Key, Value>>) {
-  return (managerType: Function, _: Function, manager: Function) => {
+  return (managerType: Function, manager: Function) => {
     const setting = settings[manager.name] ?? settings[managerType.name];
 
     if (setting == null) {

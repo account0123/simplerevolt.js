@@ -134,5 +134,4 @@ export const DEFAULT_PERMISSION_DIRECT_MESSAGE = DEFAULT_PERMISSION + Permission
 export const DEFAULT_PERMISSION_SERVER =
   DEFAULT_PERMISSION + Permission.React + Permission.ChangeNickname + Permission.ChangeAvatar;
 
-export * from "./ops.js";
 export { PermissionOverrides } from "./PermissionOverrides.js";

@@ -1,7 +1,8 @@
 import { CreateWebhookBody, Webhook } from "revolt-api";
 import { Client } from "../Client.js";
-import { Channel, ChannelWebhook } from "../models/index.js";
 import { CachedCollection } from "./DataCollection.js";
+import type { Channel } from "../models/Channel.js";
+import { ChannelWebhook } from "../models/ChannelWebhook.js";
 
 export class ChannelWebhookCollection extends CachedCollection<ChannelWebhook> {
   constructor(client: Client) {

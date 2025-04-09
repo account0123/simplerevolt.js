@@ -6,8 +6,12 @@ import {
   DataEditBot,
   User as ApiUser,
 } from "revolt-api";
-import { Client } from "../Client.js";
-import { AutumnFile, Base, Group, Server, User } from "./index.js";
+import type { Client } from "../Client.js";
+import { Base } from "./Base.js";
+import { AutumnFile } from "./File.js";
+import { Group } from "./GroupChannel.js";
+import { Server } from "./Server.js";
+import type { User } from "./User.js";
 
 export class OwnedBot extends Base {
   analytics: boolean = false;
@@ -33,12 +37,17 @@ export class OwnedBot extends Base {
     this.update(data);
   }
 
+  /**
+   * Delete a bot by its id.
+   * @throws RevoltAPIError
+   */
   async delete() {
     return this.client.bots.delete(this.id);
   }
 
   /**
    * @returns New OwnedBot instance
+   * @throws RevoltAPIError
    */
   fetch() {
     return this.client.bots.fetch(this.id);

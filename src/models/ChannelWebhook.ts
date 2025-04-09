@@ -1,7 +1,9 @@
 import { Webhook } from "revolt-api";
 
-import { AutumnFile, Base, Channel } from "./index.js";
-import { PermissionsBitField } from "../permissions/ops.js";
+import { Base } from "./Base.js";
+import { AutumnFile } from "./File.js";
+import type { Channel } from "./Channel.js";
+import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
 
 export class ChannelWebhook extends Base {
   avatar: AutumnFile | null = null;

@@ -1,8 +1,11 @@
 import type { User as ApiUser, DataEditUser, RelationshipStatus, UserStatus } from "revolt-api";
 
 import type { Client } from "../Client.js";
-import { Base, DMChannel, Group, UserProfile } from "./index.js";
-import { U32_MAX, UserPermission } from "../permissions/index.js";
+import { Permission, U32_MAX, UserPermission } from "../permissions/index.js";
+import { Base } from "./Base.js";
+import { UserProfile } from "./UserProfile.js";
+import { Group } from "./GroupChannel.js";
+import { DMChannel } from "./DMChannel.js";
 
 export enum UserFlags {
   Suspended = 1,
@@ -70,6 +73,7 @@ export class User extends Base {
 
   /**
    * Edits the user
+   * @throws RevoltAPIError
    */
   async edit(data: DataEditUser) {
     return await this.client.api.patch(`/users/${this.id == this.client.user?.id ? "@me" : this.id}`, data);
@@ -78,6 +82,7 @@ export class User extends Base {
   /**
    * Fetch the profile of a user
    * @returns The profile of the user
+   * @throws RevoltAPIError
    */
   async fetchProfile() {
     try {
@@ -90,9 +95,16 @@ export class User extends Base {
   }
 
   /**
-   * Permissions against this user
+   * Global permission for this user
    */
   get permission() {
+    return this.privileged ? Permission.GrantAllSafe : 0;
+  }
+
+  /**
+   * Permissions against this user
+   */
+  get userPermission() {
     let permissions = 0;
     switch (this.relationship) {
       case "Friend":
