@@ -40,7 +40,7 @@ export class BotCollection extends CachedCollection<OwnedBot> {
    */
   async fetchOwned() {
     // result: {bots: Bot[], users: User[]} even if client owns only one bot
-    const result = await this.client.api.get("/bots/@me") as OwnedBotsResponse;
+    const result = (await this.client.api.get("/bots/@me")) as OwnedBotsResponse;
     const owned: BotWithUserResponse[] = [];
     for (let i = 0; i < result.bots.length; i++) {
       let bot = result.bots[i];
@@ -53,7 +53,7 @@ export class BotCollection extends CachedCollection<OwnedBot> {
       if (!user) {
         console.warn("BotCollection#fetchOwned: user at index %d not found", i);
         continue;
-      };
+      }
       owned.push(Object.assign(bot, { user }));
     }
     return owned.map((data) => this.create(data));

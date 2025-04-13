@@ -41,8 +41,10 @@ abstract class DataCollection<T extends Base> {
   resolveId(idOrInstance: string | T): string {
     if (typeof idOrInstance == "string") return idOrInstance;
     if (typeof idOrInstance == "object") {
-       if (idOrInstance instanceof this.holds) return idOrInstance.id;
-       throw new TypeError(`idOrInstance is not an instance of ${this.holds.name}\nidOrInstance is instance of ${idOrInstance.constructor ? idOrInstance.constructor.name : "undefined"}`);
+      if (idOrInstance instanceof this.holds) return idOrInstance.id;
+      throw new TypeError(
+        `idOrInstance is not an instance of ${this.holds.name}\nidOrInstance is instance of ${idOrInstance.constructor ? idOrInstance.constructor.name : "undefined"}`,
+      );
     }
     throw new TypeError(`idOrInstance must be a string or an instance of ${this.holds.name}`);
   }
