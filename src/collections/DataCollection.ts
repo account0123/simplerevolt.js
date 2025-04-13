@@ -26,6 +26,7 @@ abstract class DataCollection<T extends Base> {
 
   /**
    * Resolves a data entry to a data Object.
+   * @returns Instance if it is found, otherwise null
    */
   resolve(idOrInstance: string | T): T | null {
     if (idOrInstance instanceof this.holds) return idOrInstance;
@@ -35,11 +36,15 @@ abstract class DataCollection<T extends Base> {
 
   /**
    * Resolves a data entry to an instance id.
+   * @throws TypeError - If idOrInstance is not a string or an instance of holds
    */
-  resolveId(idOrInstance: string | T): string | null {
-    if (idOrInstance instanceof this.holds) return idOrInstance.id;
+  resolveId(idOrInstance: string | T): string {
     if (typeof idOrInstance == "string") return idOrInstance;
-    return null;
+    if (typeof idOrInstance == "object") {
+       if (idOrInstance instanceof this.holds) return idOrInstance.id;
+       throw new TypeError(`idOrInstance is not an instance of ${this.holds.name}\nidOrInstance is instance of ${idOrInstance.constructor ? idOrInstance.constructor.name : "undefined"}`);
+    }
+    throw new TypeError(`idOrInstance must be a string or an instance of ${this.holds.name}`);
   }
 
   valueOf() {
