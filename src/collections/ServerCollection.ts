@@ -14,4 +14,11 @@ export class ServerCollection extends CachedCollection<Server> {
     this.cache.set(data._id, server);
     return server;
   }
+
+  update(id: string, data: Partial<ApiServer>) {
+    const server = this.cache.get(id);
+    if (server) {
+      return server.update(data);
+    }
+  }
 }

@@ -22,11 +22,13 @@ import type { Channel } from "./models/Channel.js";
 import type { DMChannel } from "./models/DMChannel.js";
 import type { Emoji } from "./models/Emoji.js";
 import type { Group } from "./models/GroupChannel.js";
+import { GroupFullInvite, ServerFullInvite } from "./models/Invite.js";
 import type { Message } from "./models/Message.js";
 import type { Role } from "./models/Role.js";
 import type { Server } from "./models/Server.js";
 import type { ServerMember } from "./models/ServerMember.js";
 import type { User } from "./models/User.js";
+
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
@@ -262,6 +264,24 @@ export class Client extends AsyncEventEmitter<Events> {
   }
 
   /**
+   * Fetch an invite by its id.
+   * @throws RevoltAPIError
+   * @throws TypeError - Unknown invite type
+   */
+  async fetchFullInvite(id: string) {
+    const result = await this.api.get(`/invites/${id as ""}`);
+    const type = result.type;
+    switch (type) {
+      case "Group":
+        return new GroupFullInvite(this, result);
+      case "Server":
+        return new ServerFullInvite(this, result);
+      default:
+        throw new TypeError("Unknown invite type " + type);
+    }
+  }
+
+  /**
    * Retrieve your user information and updates the client's user instance.
    * @throws RevoltAPIError
    */
@@ -328,6 +348,28 @@ export class Client extends AsyncEventEmitter<Events> {
         },
       }),
     );
+  }
+
+  /**
+   * Join an invite by its code.
+   */
+  async joinInvite(code: string) {
+    const result = await this.api.post(`/invites/${code as ""}`);
+    switch (result.type) {
+      case "Group":
+        return {
+          users: result.users.map((user) => this.users.create(user)),
+          group: this.channels.create(result.channel),
+        }
+      case "Server":
+        const server = this.servers.create(result.server);
+        const channels = result.channels.map((channel) => this.channels.create(channel));
+        channels.forEach((channel) => server.channels._add(channel));
+        return {
+          server,
+          channels,
+        }
+    }
   }
 
   /**
