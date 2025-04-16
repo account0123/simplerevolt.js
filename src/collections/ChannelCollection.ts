@@ -85,8 +85,8 @@ export class ChannelCollection extends CachedCollection<Channel> {
   }
 }
 
-export class ChannelCollectionInServer extends CachedCollection<Channel> {
+export class ChannelCollectionInServer extends ChannelCollection {
   constructor(server: Server) {
-    super(server.client, Channel);
+    super(server.client);
   }
 }
