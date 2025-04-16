@@ -5,9 +5,9 @@ import type { Client } from "../Client.js";
 import type { Group } from "./GroupChannel.js";
 import type { TextChannel } from "./ServerChannel.js";
 
-type GroupInviteData = Extract<ApiInvite, { type: "Group" }>;
+export type GroupInviteData = Extract<ApiInvite, { type: "Group" }>;
 type GroupFullInviteData = Extract<InviteResponse, { type: "Group" }>;
-type ServerInviteData = Extract<ApiInvite, { type: "Server" }>;
+export type ServerInviteData = Extract<ApiInvite, { type: "Server" }>;
 type ServerFullInviteData = Extract<InviteResponse, { type: "Server" }>;
 
 /**

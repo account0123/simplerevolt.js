@@ -12,6 +12,7 @@ import { ServerMemberCollection } from "../collections/ServerMemberCollection.js
 import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
 import { ALLOW_IN_TIMEOUT, Permission, PermissionOverrides } from "../permissions/index.js";
 import { BitField } from "../utils/BitField.js";
+import { ServerInviteCollection } from "../collections/InviteCollection.js";
 
 export class Server extends Base {
   // @ts-ignore unused
@@ -21,6 +22,7 @@ export class Server extends Base {
   readonly categories = new ServerCategoryCollection(this);
   readonly channels = new ChannelCollectionInServer(this);
   readonly defaultPermissions: PermissionsBitField;
+  readonly invites = new ServerInviteCollection(this);
   readonly members = new ServerMemberCollection(this);
   roles = new RoleCollection(this);
   discoverable = false;

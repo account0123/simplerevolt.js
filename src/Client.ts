@@ -29,7 +29,6 @@ import type { Server } from "./models/Server.js";
 import type { ServerMember } from "./models/ServerMember.js";
 import type { User } from "./models/User.js";
 
-
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
 
@@ -360,7 +359,7 @@ export class Client extends AsyncEventEmitter<Events> {
         return {
           users: result.users.map((user) => this.users.create(user)),
           group: this.channels.create(result.channel),
-        }
+        };
       case "Server":
         const server = this.servers.create(result.server);
         const channels = result.channels.map((channel) => this.channels.create(channel));
@@ -368,7 +367,7 @@ export class Client extends AsyncEventEmitter<Events> {
         return {
           server,
           channels,
-        }
+        };
     }
   }
 

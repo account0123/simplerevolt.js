@@ -18,6 +18,8 @@ import type { User } from "./User.js";
 import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
 import Long from "long";
 import { BitField } from "../utils/BitField.js";
+import { RJSError } from "../errors/RJSError.js";
+import { ErrorCodes } from "../errors/ErrorCodes.js";
 
 type ServerChannelData = Extract<ApiChannel, { channel_type: "TextChannel" | "VoiceChannel" }>;
 export class ServerChannel extends TextBasedChannel {
@@ -107,13 +109,13 @@ export class ServerChannel extends TextBasedChannel {
       return perm.toNumber();
     }
   }
+
   /**
    * Creates an invite to this channel.
    * @throws RevoltAPIError
    */
-  async createInvite() {
-    // TODO: Invite model
-    return await this.client.api.post(`/channels/${this.id as ""}/invites`);
+  createInvite() {
+    return this.server.invites.createInvite(this.id);
   }
 
   /**
@@ -161,7 +163,9 @@ export class ServerChannel extends TextBasedChannel {
   }
 
   get server() {
-    return this.client.servers.resolve(this.serverId);
+    const server = this.client.servers.resolve(this.serverId);
+    if (!server) throw new RJSError(ErrorCodes.NotFoundById, "server", this.serverId);
+    return server;
   }
 
   /**

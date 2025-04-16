@@ -4,6 +4,7 @@ import { Channel } from "./Channel.js";
 import { AutumnFile } from "./File.js";
 import type { User } from "./User.js";
 import { DEFAULT_PERMISSION_DIRECT_MESSAGE, Permission } from "../permissions/index.js";
+import { GroupInviteCollection } from "../collections/InviteCollection.js";
 
 export type GroupData = Extract<ApiChannel, { channel_type: "Group" }>;
 
@@ -11,6 +12,7 @@ export class Group extends Channel {
   name: string;
   description: string | null;
   icon: AutumnFile | null;
+  readonly invites = new GroupInviteCollection(this);
   ownerId: string;
   permissions: number | null;
   readonly recipientIds: Set<string>;
@@ -37,6 +39,10 @@ export class Group extends Channel {
     const user = this.client.user;
     if (user?.permission) return user.permission;
     return this.ownerId == user?.id ? Permission.GrantAllSafe : (this.permissions ?? DEFAULT_PERMISSION_DIRECT_MESSAGE);
+  }
+
+  createInvite() {
+    return this.invites.createInvite(this.id);
   }
 
   /**
