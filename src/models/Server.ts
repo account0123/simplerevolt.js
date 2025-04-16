@@ -13,6 +13,7 @@ import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
 import { ALLOW_IN_TIMEOUT, Permission, PermissionOverrides } from "../permissions/index.js";
 import { BitField } from "../utils/BitField.js";
 import { ServerInviteCollection } from "../collections/InviteCollection.js";
+import { ServerInviteData } from "./Invite.js";
 
 export class Server extends Base {
   // @ts-ignore unused
@@ -96,6 +97,15 @@ export class Server extends Base {
           break;
       }
     }
+  }
+
+  /**
+   * Fetch all server invites.
+   * @throws RevoltAPIError
+   */
+  async fetchInvites() {
+    const invites = (await this.client.api.get(`/servers/${this.id as ""}/invites`)) as ServerInviteData[]; // Assuming the API filters server invites
+    return invites.map((invite) => this.invites.create(invite));
   }
 
   /**
