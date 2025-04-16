@@ -6,7 +6,8 @@ export function objectToMap<T>(obj: Record<string, T>): Map<string, T> {
   return map;
 }
 
-export function mapObject<T, U>(obj: Record<string, T>, mapper: (key: string, value: T) => { [key: string]: U }) {
+// @ts-expect-error Unused function
+function mapObject<T, U>(obj: Record<string, T>, mapper: (key: string, value: T) => { [key: string]: U }) {
   if (typeof obj != "object") throw new TypeError("Expected an object");
   if (typeof mapper != "function") throw new TypeError("Expected a mapper function");
 

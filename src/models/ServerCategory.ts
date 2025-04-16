@@ -1,8 +1,9 @@
 import { Category as ApiCategory } from "revolt-api";
 
-import { ChannelCollectionInServer } from "../collections/index.js";
-import { Base, Server } from "./index.js";
 import type { Client } from "../Client.js";
+import { Base } from "./Base.js";
+import type { Server } from "./Server.js";
+import { ChannelCollectionInServer } from "../collections/ChannelCollection.js";
 
 export class Category extends Base {
   readonly id: string;

@@ -1,7 +1,7 @@
 import type { Role as ApiRole } from "revolt-api";
-
-import { Base, type Server } from "./index.js";
 import { PermissionOverrides } from "../permissions/PermissionOverrides.js";
+import { Base } from "./Base.js";
+import type { Server } from "./Server.js";
 
 type RoleData = ApiRole & { id: string };
 

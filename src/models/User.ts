@@ -1,8 +1,11 @@
-import type { User as ApiUser, DataEditUser, RelationshipStatus, UserStatus } from "revolt-api";
+import type { User as ApiUser, DataEditUser, DataMessageSend, RelationshipStatus, UserStatus } from "revolt-api";
 
 import type { Client } from "../Client.js";
-import { Base, DMChannel, Group, UserProfile } from "./index.js";
-import { U32_MAX, UserPermission } from "../permissions/index.js";
+import { Permission, U32_MAX, UserPermission } from "../permissions/index.js";
+import { Base } from "./Base.js";
+import { UserProfile } from "./UserProfile.js";
+import { Group } from "./GroupChannel.js";
+import { DMChannel } from "./DMChannel.js";
 
 export enum UserFlags {
   Suspended = 1,
@@ -69,15 +72,63 @@ export class User extends Base {
   }
 
   /**
+   * Block this user.
+   * @throws RevoltAPIError
+   */
+  block() {
+    return this.client.users.block(this.id);
+  }
+
+  get dmChannel() {
+    return this.client.users.getDMChannel(this.id);
+  }
+
+  /**
    * Edits the user
+   * @throws RevoltAPIError
    */
   async edit(data: DataEditUser) {
     return await this.client.api.patch(`/users/${this.id == this.client.user?.id ? "@me" : this.id}`, data);
   }
 
   /**
+   * Retrieve a user's information.
+   * @throws RevoltAPIError
+   */
+  fetch() {
+    return this.client.users.fetch(this.id);
+  }
+
+  /**
+   * @returns default avatar
+   */
+  async fetchDefaultAvatar() {
+    const result = await this.client.api.get(`/users/${this.id as ""}/default_avatar`);
+    return new TextEncoder().encode(result);
+  }
+
+  /**
+   * Retrieve a user's flags.
+   * @throws RevoltAPIError
+   */
+  async fetchFlags() {
+    const result = await this.client.api.get(`/users/${this.id as ""}/flags`);
+    this.flags = result.flags;
+    return result.flags;
+  }
+
+  /**
+   * Retrieve a list of mutual friends and servers with this user.
+   * @throws RevoltAPIError
+   */
+  fetchMutual(): Promise<{ users: string[]; servers: string[] }> {
+    return this.client.users.fetchMutual(this.id);
+  }
+
+  /**
    * Fetch the profile of a user
    * @returns The profile of the user
+   * @throws RevoltAPIError
    */
   async fetchProfile() {
     try {
@@ -90,9 +141,25 @@ export class User extends Base {
   }
 
   /**
-   * Permissions against this user
+   * Global permission for this user
    */
   get permission() {
+    return this.privileged ? Permission.GrantAllSafe : 0;
+  }
+
+  /**
+   * Send a message to this user. If the user does not have a DM channel open, one will be opened.
+   * @throws RevoltAPIError
+   */
+  async sendMessage(data: string | DataMessageSend, idempotencyKey?: string) {
+    const dm = await this.client.users.createDMChannel(this.id, false);
+    return dm.sendMessage(data, idempotencyKey);
+  }
+
+  /**
+   * Permissions against this user
+   */
+  get userPermission() {
     let permissions = 0;
     switch (this.relationship) {
       case "Friend":
@@ -125,6 +192,14 @@ export class User extends Base {
 
   override toString() {
     return `<@${this.id}>`;
+  }
+
+  /**
+   * Unblock this user.
+   * @throws RevoltAPIError
+   */
+  unblock() {
+    return this.client.users.unblock(this.id);
   }
 
   override update(data: Partial<ApiUser>) {

@@ -1,20 +1,33 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
-import { API, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
+import { API, Channel as ApiChannel, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
 
-import { EventClient, EventClientOptions } from "./events/EventClient.js";
-import {
-  BotCollection,
-  ChannelCollection,
-  ChannelUnreadCollection,
-  ChannelWebhookCollection,
-  EmojiCollection,
-  MessageCollection,
-  ServerCollection,
-  UserCollection,
-} from "./collections/index.js";
-import { Channel, Emoji, Message, PublicBot, Role, Server, ServerMember, User } from "./models/index.js";
-import { ConnectionState, handleEventV1 } from "./events/index.js";
-import { SimpleRequest } from "./rest/index.js";
+import { ConnectionState, EventClient, EventClientOptions } from "./events/EventClient.js";
+import { handleEventV1 } from "./events/index.js";
+
+// Collections
+import { BotCollection } from "./collections/BotCollection.js";
+import { ChannelCollection } from "./collections/ChannelCollection.js";
+import { ChannelUnreadCollection } from "./collections/ChannelUnreadCollection.js";
+import { ChannelWebhookCollection } from "./collections/ChannelWebhookCollection.js";
+import { EmojiCollection } from "./collections/EmojiCollection.js";
+import { MessageCollection } from "./collections/MessageCollection.js";
+import { ServerCollection } from "./collections/ServerCollection.js";
+import { UserCollection } from "./collections/UserCollection.js";
+
+import { SimpleRequest } from "./rest/Request.js";
+
+// Models
+import { PublicBot } from "./models/Bot.js";
+import type { Channel } from "./models/Channel.js";
+import type { DMChannel } from "./models/DMChannel.js";
+import type { Emoji } from "./models/Emoji.js";
+import type { Group } from "./models/GroupChannel.js";
+import { GroupFullInvite, ServerFullInvite } from "./models/Invite.js";
+import type { Message } from "./models/Message.js";
+import type { Role } from "./models/Role.js";
+import type { Server } from "./models/Server.js";
+import type { ServerMember } from "./models/ServerMember.js";
+import type { User } from "./models/User.js";
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
@@ -212,13 +225,75 @@ export class Client extends AsyncEventEmitter<Events> {
     this.events.on("event", (event) => handleEventV1(this, event, setReady.bind(this)));
   }
 
+  /**
+   *
+   * @throws RevoltAPIError
+   */
   async createBot(data: DataCreateBot) {
     const bot = await this.api.post("/bots/create", data);
     return this.bots.create(bot);
   }
 
   /**
+   * This fetches your direct messages, including any DM and group DM conversations.
+   * @returns Object containing the saved messages channel, direct messages, and groups
+   */
+  async fetchDMChannels() {
+    const result = (await this.api.get("/users/dms")) as ApiChannel[];
+    let channels: { savedMessages?: Channel; directMessages: DMChannel[]; groups: Group[] } = {
+      directMessages: [],
+      groups: [],
+    };
+    result
+      .map((channel) => this.channels.create(channel))
+      .forEach((channel) => {
+        switch (channel.channelType) {
+          case "SavedMessages":
+            channels.savedMessages = channel;
+            break;
+          case "DirectMessage":
+            channels.directMessages.push(channel as DMChannel);
+            break;
+          case "Group":
+            channels.groups.push(channel as Group);
+            break;
+        }
+      });
+    return channels;
+  }
+
+  /**
+   * Fetch an invite by its id.
+   * @throws RevoltAPIError
+   * @throws TypeError - Unknown invite type
+   */
+  async fetchFullInvite(id: string) {
+    const result = await this.api.get(`/invites/${id as ""}`);
+    const type = result.type;
+    switch (type) {
+      case "Group":
+        return new GroupFullInvite(this, result);
+      case "Server":
+        return new ServerFullInvite(this, result);
+      default:
+        throw new TypeError("Unknown invite type " + type);
+    }
+  }
+
+  /**
+   * Retrieve your user information and updates the client's user instance.
+   * @throws RevoltAPIError
+   */
+  async fetchUser() {
+    if (arguments.length) console.warn("Client#fetchUser expects 0 arguments, but got %d", arguments.length);
+    const data = await this.api.get("/users/@me");
+    this.user = this.users.create(data);
+    return this.user;
+  }
+
+  /**
    * Fetch details of a public (or owned) bot by its id.
+   * @throws RevoltAPIError
    */
   async fetchPublicBot(id: string) {
     const data = await this.api.get(`/bots/${id as ""}/invite`);
@@ -272,6 +347,28 @@ export class Client extends AsyncEventEmitter<Events> {
         },
       }),
     );
+  }
+
+  /**
+   * Join an invite by its code.
+   */
+  async joinInvite(code: string) {
+    const result = await this.api.post(`/invites/${code as ""}`);
+    switch (result.type) {
+      case "Group":
+        return {
+          users: result.users.map((user) => this.users.create(user)),
+          group: this.channels.create(result.channel),
+        };
+      case "Server":
+        const server = this.servers.create(result.server);
+        const channels = result.channels.map((channel) => this.channels.create(channel));
+        channels.forEach((channel) => server.channels._add(channel));
+        return {
+          server,
+          channels,
+        };
+    }
   }
 
   /**

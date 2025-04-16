@@ -6,8 +6,12 @@ import {
   DataEditBot,
   User as ApiUser,
 } from "revolt-api";
-import { Client } from "../Client.js";
-import { AutumnFile, Base, Group, Server, User } from "./index.js";
+import type { Client } from "../Client.js";
+import { Base } from "./Base.js";
+import { AutumnFile } from "./File.js";
+import type { Group } from "./GroupChannel.js";
+import type { Server } from "./Server.js";
+import type { User } from "./User.js";
 
 export class OwnedBot extends Base {
   analytics: boolean = false;
@@ -33,20 +37,28 @@ export class OwnedBot extends Base {
     this.update(data);
   }
 
+  /**
+   * Delete a bot by its id.
+   * @throws RevoltAPIError
+   */
   async delete() {
     return this.client.bots.delete(this.id);
   }
 
   /**
    * @returns New OwnedBot instance
+   * @throws RevoltAPIError
    */
   fetch() {
     return this.client.bots.fetch(this.id);
   }
 
-  async edit(data: DataEditBot): Promise<this> {
-    const result = await this.client.api.patch(`/bots/${this.id as ""}`, data);
-    return this.update(result);
+  /**
+   * Edit details of this bot.
+   * @throws RevoltAPIError
+   */
+  edit(data: DataEditBot) {
+    return this.client.bots.edit(this.id, data);
   }
 
   get owner() {
@@ -82,7 +94,7 @@ export class PublicBot extends Base {
    */
   addToServer(server: Server | string) {
     return this.client.api.post(`/bots/${this.id as ""}/invite`, {
-      server: server instanceof Server ? server.id : server,
+      server: this.client.servers.resolveId(server),
     });
   }
 
@@ -91,7 +103,7 @@ export class PublicBot extends Base {
    */
   addToGroup(group: Group | string) {
     return this.client.api.post(`/bots/${this.id as ""}/invite`, {
-      group: group instanceof Group ? group.id : group,
+      group: this.client.channels.resolveId(group),
     });
   }
 
