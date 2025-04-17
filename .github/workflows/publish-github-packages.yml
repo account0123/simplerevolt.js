@@ -37,8 +37,6 @@ jobs:
           cache: 'pnpm'
           registry-url: https://npm.pkg.github.com/
       - run: pnpm install --frozen-lockfile
-      # Build step skipped because of prepublish script
-      #- run: pnpm build
       - run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
