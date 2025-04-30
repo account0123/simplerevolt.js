@@ -28,6 +28,7 @@ import type { Role } from "./models/Role.js";
 import type { Server } from "./models/Server.js";
 import type { ServerMember } from "./models/ServerMember.js";
 import type { User } from "./models/User.js";
+import { SyncSettings } from "./models/SyncSettings.js";
 
 type Token = string;
 export type Session = { _id: string; token: Token; user_id: string } | Token;
@@ -149,6 +150,7 @@ export class Client extends AsyncEventEmitter<Events> {
   readonly messages = new MessageCollection(this);
   readonly channelWebhooks = new ChannelWebhookCollection(this);
   readonly options: ClientOptions;
+  readonly syncSettings = new SyncSettings(this);
   // @ts-ignore unused
   private ready: boolean = false;
   readonly servers = new ServerCollection(this);
