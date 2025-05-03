@@ -350,7 +350,7 @@ export class Client extends AsyncEventEmitter<Events> {
    */
   async completeOnboarding(username: string) {
     if (typeof username != "string") throw new TypeError("username must be a string");
-    if (!username.match(/^(\p{L}|[\d_.-])+$/v)) {
+    if (!username.match(/^(\p{L}|[\d_.\-])+$/v)) {
       throw new TypeError(
         "username provided is not valid (it should contain only letters, digits, underscores, dashes, and periods)",
       );
@@ -421,6 +421,7 @@ export class Client extends AsyncEventEmitter<Events> {
     switch (result) {
       case "Success":
         this.#session = loginResult;
+        this.#updateHeaders();
         await this.connect();
         break;
       case "MFA":
