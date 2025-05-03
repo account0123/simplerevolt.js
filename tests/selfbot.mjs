@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { Client, Permission } from "../lib/esm/index.js";
 
+const { ACCOUNT_EMAIL: email, ACCOUNT_PASSWORD: password, OS } = process.env;
 const client = new Client({ debug: true });
 
 client.on("ready", () => console.log(`Logged in as ${client.user.username}#${client.user.discriminator}`));
@@ -23,9 +24,10 @@ client.on("messageCreate", async (message) => {
 
 client.on("disconnected", () => console.log("Disconnected"));
 
-client.login(process.env.USER_TOKEN).then(result => {
-  if (result.callback) {
-    result.callback("username").then(user => console.log(`Completed onboarding as ${user.username}#${user.discriminator}`));
+client.login({ email, password, friendly_name: `Node.js on ${OS}` }).then(result => {
+  if (result?.callback) {
+    console.log("Required onboarding");
+    // result.callback("your_username");
   }
   console.log("Authenticated");
-});
+}).catch(console.error);
