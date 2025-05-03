@@ -1,5 +1,14 @@
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
-import { API, Channel as ApiChannel, DataCreateBot, type DataLogin, type RevoltConfig } from "revolt-api";
+import {
+  API,
+  Channel as ApiChannel,
+  DataCreateBot,
+  MFAMethod,
+  MFAResponse,
+  WebPushSubscription,
+  type DataLogin,
+  type RevoltConfig,
+} from "revolt-api";
 
 import { ConnectionState, EventClient, EventClientOptions } from "./events/EventClient.js";
 import { handleEventV1 } from "./events/index.js";
@@ -29,9 +38,13 @@ import type { Server } from "./models/Server.js";
 import type { ServerMember } from "./models/ServerMember.js";
 import type { User } from "./models/User.js";
 import { SyncSettings } from "./models/SyncSettings.js";
+import { RJSError } from "./errors/RJSError.js";
+import { ErrorCodes } from "./errors/ErrorCodes.js";
 
 type Token = string;
-export type Session = { _id: string; token: Token; user_id: string } | Token;
+export type Session =
+  | { _id: string; token: Token; user_id: string; name: string; subscription?: WebPushSubscription | null }
+  | Token;
 
 /**
  * Events provided by the client
@@ -329,6 +342,25 @@ export class Client extends AsyncEventEmitter<Events> {
   }
 
   /**
+   * This method should be called if the account is newly created.
+   * @param username New username
+   * @returns User if onboarding was successful, otherwise null
+   * @throws TypeError - Invalid username
+   * @throws RevoltAPIError
+   */
+  async completeOnboarding(username: string) {
+    if (typeof username != "string") throw new TypeError("username must be a string");
+    if (!username.match(/^(\p{L}|[\d_.-])+$/v)) {
+      throw new TypeError(
+        "username provided is not valid (it should contain only letters, digits, underscores, dashes, and periods)",
+      );
+    }
+    const result = await this.api.post("/onboard/complete");
+    this.user = this.users.create(result);
+    return this.user;
+  }
+
+  /**
    * Fetches the configuration of the server if it has not been already fetched.
    */
   async #fetchConfiguration() {
@@ -376,17 +408,65 @@ export class Client extends AsyncEventEmitter<Events> {
   /**
    * Log in with auth data, creating a new session in the process.
    * @param details Login data object
-   * @returns An on-boarding function if on-boarding is required, undefined otherwise
+   * @example
+   * const { callback } = await client.login({ username: "user", password: "password" });
+   * if (callback) {
+   *   await callback("my_username"); // Complete onboarding
+   * }
    */
   async login(details: DataLogin) {
     await this.#fetchConfiguration();
-    const data = await this.api.post("/auth/session/login", details);
-    if (data.result == "Success") {
-      this.#session = data;
-      // TODO: return await this.connect();
-    } else {
-      throw "MFA not implemented!";
+    const loginResult = await this.api.post("/auth/session/login", details);
+    const result = loginResult.result;
+    switch (result) {
+      case "Success":
+        this.#session = loginResult;
+        await this.connect();
+        break;
+      case "MFA":
+        throw new RJSError(ErrorCodes.MFANotImplemented);
+      case "Disabled":
+        throw new RJSError(ErrorCodes.AccountDisabled, loginResult.user_id);
+      default:
+        throw "Unknown login result: " + result;
     }
+
+    // Call onboarding
+    const hello = await this.api.get("/onboard/hello");
+    if (hello.onboarding) {
+      return {
+        callback: this.completeOnboarding.bind(this),
+      };
+    }
+  }
+
+  /**
+   * @param mfa_ticket MFA ticket
+   * @param friendly_name Friendly name
+   * @param code Password, recovery code, or TOTP code
+   * @param method Password | Recovery | Totp
+   * @throws RevoltAPIError
+   * @returns Credentials for login
+   */
+  getMFACredentials(mfa_ticket: string, friendly_name: string | null, code: string, method: MFAMethod): DataLogin {
+    if (typeof code != "string") throw new TypeError("code must be a string");
+    if (typeof mfa_ticket != "string") throw new TypeError("ticket must be a string");
+
+    let password, recovery_code, totp_code;
+    switch (method) {
+      case "Password":
+        password = code;
+        break;
+      case "Recovery":
+        recovery_code = code;
+        break;
+      case "Totp":
+        totp_code = code;
+        break;
+      default:
+        throw new TypeError("Unknown MFA method: " + method);
+    }
+    return { mfa_ticket, mfa_response: { password, recovery_code, totp_code } as MFAResponse, friendly_name };
   }
 
   /**
