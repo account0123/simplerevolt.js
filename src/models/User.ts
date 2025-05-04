@@ -6,6 +6,7 @@ import { Base } from "./Base.js";
 import { UserProfile } from "./UserProfile.js";
 import { Group } from "./GroupChannel.js";
 import { DMChannel } from "./DMChannel.js";
+import { AutumnFile } from "./File.js";
 
 export enum UserFlags {
   Suspended = 1,
@@ -40,6 +41,7 @@ export enum Relationship {
 
 export class User extends Base {
   readonly id: string;
+  avatar: AutumnFile | null = null;
   displayName: string;
   discriminator: string;
   flags = 0;
@@ -205,6 +207,7 @@ export class User extends Base {
   override update(data: Partial<ApiUser>) {
     if (data.username) this.username = data.username;
     if (data.discriminator) this.discriminator = data.discriminator;
+    if ("avatar" in data) this.avatar = data.avatar ? new AutumnFile(this.client, data.avatar) : null;
     if ("display_name" in data) this.displayName = data.display_name || this.username;
     if ("flags" in data) this.flags = data.flags;
     if ("badges" in data) this.badges = data.badges;
