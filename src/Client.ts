@@ -332,13 +332,19 @@ export class Client extends AsyncEventEmitter<Events> {
    * Connect to Revolt
    */
   async connect() {
-    clearTimeout(this.#reconnectTimeout);
-    this.events.disconnect();
-    this.ready = false;
+    this.disconnect();
     await this.events.connect(
       this.configuration?.ws ?? "wss://ws.revolt.chat",
       typeof this.#session == "string" ? this.#session : this.#session!.token,
     );
+  }
+
+  /** Disconnect from Revolt */
+  disconnect() {
+    clearTimeout(this.#reconnectTimeout);
+    this.events.disconnect();
+    this.ready = false;
+    this.emit("disconnected");
   }
 
   /**
@@ -350,7 +356,7 @@ export class Client extends AsyncEventEmitter<Events> {
    */
   async completeOnboarding(username: string) {
     if (typeof username != "string") throw new TypeError("username must be a string");
-    if (!username.match(/^(\p{L}|[\d_.\-])+$/v)) {
+    if (!username.match(/^(\p{L}|[\d_.\-])+$/u)) {
       throw new TypeError(
         "username provided is not valid (it should contain only letters, digits, underscores, dashes, and periods)",
       );
@@ -479,6 +485,19 @@ export class Client extends AsyncEventEmitter<Events> {
     this.#session = token;
     this.#updateHeaders();
     await this.connect();
+  }
+
+  /**
+   * Delete current session, and disconnect from EventClient.
+   * @param request Whether to request a logout (not recommended for bots)
+   */
+  async logout(request = false) {
+    if (request) {
+      await this.api.post("/auth/session/logout");
+    }
+    this.disconnect();
+    this.#session = undefined;
+    this.#updateHeaders();
   }
 
   get sessionId() {

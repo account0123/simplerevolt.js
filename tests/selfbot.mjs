@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Client, Permission } from "../lib/esm/index.js";
+import { Client, Permission } from "../lib/index.js";
 
 const { ACCOUNT_EMAIL: email, ACCOUNT_PASSWORD: password, OS } = process.env;
 const client = new Client({ debug: true });

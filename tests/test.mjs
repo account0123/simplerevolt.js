@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Client, Permission } from "../lib/esm/index.js";
+import { Client, Permission } from "../lib/index.js";
 
 const client = new Client({ debug: true });
 
@@ -24,3 +24,5 @@ client.on("messageCreate", async (message) => {
 client.on("disconnected", () => console.log("Disconnected"));
 
 client.loginBot(process.env.TOKEN);
+
+process.once("SIGINT", async () => await client.logout());

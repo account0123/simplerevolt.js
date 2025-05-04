@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Client } from "../lib/esm/index.js";
+import { Client } from "../lib/index.js";
 import assert from "node:assert";
 
 const client = new Client();
