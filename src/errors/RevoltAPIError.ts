@@ -1,5 +1,11 @@
 import { Error as APIError } from "revolt-api";
 
+export interface HttpError {
+  code: number;
+  reason: string;
+  description: string;
+}
+
 export class RevoltAPIError extends Error {
   public constructor(
     public rawError: APIError,
@@ -17,7 +23,7 @@ export class RevoltAPIError extends Error {
     return `${RevoltAPIError.name}[${this.status}]`;
   }
 
-  private static getMessage(error: APIError) {
+  private static getMessage(error: APIError | HttpError) {
     if ("type" in error) {
       switch (error.type) {
         case "MissingPermission":
@@ -38,6 +44,10 @@ export class RevoltAPIError extends Error {
           const { type, location, ...data } = error;
           return `${error.type}\n\n${JSON.stringify(data)}`;
       }
+    }
+
+    if ("reason" in error) {
+      return `${error.reason}\n${error.description}`;
     }
 
     return "No Description";

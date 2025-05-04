@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { Client, Permission } from "../lib/index.js";
 
+const { ACCOUNT_EMAIL: email, ACCOUNT_PASSWORD: password, OS } = process.env;
 const client = new Client({ debug: true });
 
 client.on("ready", () => console.log(`Logged in as ${client.user.username}#${client.user.discriminator}`));
@@ -23,6 +24,10 @@ client.on("messageCreate", async (message) => {
 
 client.on("disconnected", () => console.log("Disconnected"));
 
-client.loginBot(process.env.TOKEN);
-
-process.once("SIGINT", async () => await client.logout());
+client.login({ email, password, friendly_name: `Node.js on ${OS}` }).then(result => {
+  if (result?.callback) {
+    console.log("Required onboarding");
+    // result.callback("your_username");
+  }
+  console.log("Authenticated");
+}).catch(console.error);

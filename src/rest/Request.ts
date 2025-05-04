@@ -169,7 +169,11 @@ export class SimpleRequest {
         if (isAxiosError(error)) {
           const response = error.response;
           if (response) {
-            throw new RevoltAPIError(response.data, response.status, method, response.config.url || "/");
+            let data = response.data;
+            if (data.error) {
+              data = unwrapError(data);
+            }
+            throw new RevoltAPIError(data, response.status, method, response.config.url || "/");
           }
         }
       }
@@ -183,4 +187,20 @@ export class SimpleRequest {
 export function isAxiosError(error: any): error is AxiosError {
   if (error && error.isAxiosError) return true;
   return false;
+}
+
+/**
+ * Recursively unwraps an error object
+ * @param error Unknown error object
+ * @returns Unwrapped error, or the original error if nothing to unwrap
+ * @example
+ * const error = new Error({ error: new Error("Inner error") });
+ * unwrapError(error); // Error instance
+ */
+export function unwrapError(error: unknown) {
+  if (error && typeof error == "object" && Object.hasOwn(error, "error")) {
+    const { error: innerError } = error as { error: unknown };
+    return unwrapError(innerError);
+  }
+  return error;
 }

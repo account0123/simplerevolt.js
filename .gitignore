@@ -48,4 +48,5 @@ node_modules/
 .vscode-test
 
 # Build output
+.tsup/
 lib/

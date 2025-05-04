@@ -1,4 +1,4 @@
-import { Client } from "../lib/esm/index.js";
+import { Client } from "../lib/index.js";
 
 const client = new Client({ debug: true });
 const code = "Testers";
