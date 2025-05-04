@@ -45,6 +45,29 @@ export { RJSError } from "./errors/RJSError.js";
 export { handleEvent } from "./events/v1.js";
 export { ConnectionState, EventClient } from "./events/EventClient.js";
 
+// Models
+export { OwnedBot, PublicBot } from "./models/Bot.js";
+export { Channel, TextBasedChannel } from "./models/Channel.js";
+export { ChannelUnread } from "./models/ChannelUnread.js";
+export { ChannelWebhook } from "./models/ChannelWebhook.js";
+export { ClientUser } from "./models/ClientUser.js";
+export { DMChannel } from "./models/DMChannel.js";
+export { Emoji } from "./models/Emoji.js";
+export { AutumnFile } from "./models/File.js";
+export { Group } from "./models/GroupChannel.js";
+export { GroupInvite, GroupFullInvite, ServerInvite, ServerFullInvite } from "./models/Invite.js";
+export { Message } from "./models/Message.js";
+export { ImageEmbed, VideoEmbed, TextEmbed, UnknownEmbed, WebsiteEmbed } from "./models/MessageEmbed.js";
+export { MessageReactions } from "./models/MessageReactions.js";
+export { Role } from "./models/Role.js";
+export { Server } from "./models/Server.js";
+export { Category } from "./models/ServerCategory.js";
+export { TextChannel, VoiceChannel } from "./models/ServerChannel.js";
+export { ServerMember } from "./models/ServerMember.js";
+export { SyncSettings } from "./models/SyncSettings.js";
+export { User } from "./models/User.js";
+export { UserProfile } from "./models/UserProfile.js";
+
 // Permissions
 export { BitField } from "./utils/BitField.js";
 export type { RecursiveReadonlyArray, BitFieldResolvable } from "./utils/BitField.js";
