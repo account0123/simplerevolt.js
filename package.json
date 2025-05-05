@@ -1,6 +1,6 @@
 {
   "name": "simplerevolt.js",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Javascript library for interacting to Revolt API",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
