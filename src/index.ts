@@ -56,6 +56,7 @@ export { Emoji } from "./models/Emoji.js";
 export { AutumnFile } from "./models/File.js";
 export { Group } from "./models/GroupChannel.js";
 export { GroupInvite, GroupFullInvite, ServerInvite, ServerFullInvite } from "./models/Invite.js";
+export { Masquerade } from "./models/Masquerade.js";
 export { Message } from "./models/Message.js";
 export { ImageEmbed, VideoEmbed, TextEmbed, UnknownEmbed, WebsiteEmbed } from "./models/MessageEmbed.js";
 export { MessageReactions } from "./models/MessageReactions.js";
