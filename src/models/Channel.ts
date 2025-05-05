@@ -16,6 +16,7 @@ import type { Message } from "./Message.js";
 import type { User } from "./User.js";
 import { PermissionsBitField } from "../permissions/PermissionsBitField.js";
 import { Permission } from "../permissions/index.js";
+import { Masquerade } from "./Masquerade.js";
 
 /**
  * Channel Class
@@ -213,6 +214,15 @@ export class Channel extends Base {
       msg.content = msg.content.substring(3);
       msg.flags ||= 1;
       msg.flags |= 1;
+    }
+
+    if (msg.masquerade instanceof Masquerade) {
+      const masquerade = msg.masquerade;
+      msg.masquerade = {
+        name: masquerade.name,
+        avatar: masquerade.avatar,
+        colour: masquerade.colour,
+      };
     }
 
     try {
