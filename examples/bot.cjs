@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { Client, Permission } = require("..");
+const { Client, Permission } = require("../lib");
 
 const client = new Client({ debug: true });
 
