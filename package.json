@@ -15,8 +15,7 @@
     "format": "pnpm prettier --write src/",
     "prepublishOnly": "pnpm build",
     "pretest": "pnpm build",
-    "test:cjs": "node tests/test.cjs",
-    "test:esm": "node tests/test.mjs"
+    "test": "node examples/bot.mjs"
   },
   "keywords": [
     "revolt",
