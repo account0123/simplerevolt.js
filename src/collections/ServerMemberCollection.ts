@@ -85,6 +85,30 @@ export class ServerMemberCollection extends CachedCollection<ServerMember> {
     return result.members.map((member) => this.create(member));
   }
 
+  /**
+   * Timeout a member for a duration since Date.now()
+   * @param member 
+   * @param duration in seconds
+   */
+  timeoutFor(member: string | ServerMember, duration: number) {
+    const until = Date.now() + (duration * 1_000);
+    return this.timeoutUntil(member, new Date(until));
+  }
+
+  /**
+   * Timeout a member.
+   * @param member 
+   * @param timeout Date or ISO string
+   */
+  timeoutUntil(member: string | ServerMember, timeout: Date | string) {
+    const id = this.resolveId(member);
+    if (timeout instanceof Date) {
+      timeout = timeout.toISOString();
+    }
+
+    return this.edit(id, { timeout });
+  }
+
   update(id: string, data: Partial<Member>) {
     const member = this.cache.get(id);
     return member?.update(data);
