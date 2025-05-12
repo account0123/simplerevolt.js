@@ -31,6 +31,7 @@ export { EmojiCollection } from "./collections/EmojiCollection.js";
 export { MessageCollection } from "./collections/MessageCollection.js";
 export { PermissionOverrideCollection } from "./collections/PermissionOverrideCollection.js";
 export { RoleCollection } from "./collections/RoleCollection.js";
+export { ServerBanCollection } from "./collections/ServerBanCollection.js";
 export { ServerCategoryCollection } from "./collections/ServerCategoryCollection.js";
 export { ServerCollection } from "./collections/ServerCollection.js";
 export { ServerMemberCollection } from "./collections/ServerMemberCollection.js";
@@ -62,6 +63,7 @@ export { ImageEmbed, VideoEmbed, TextEmbed, UnknownEmbed, WebsiteEmbed } from ".
 export { MessageReactions } from "./models/MessageReactions.js";
 export { Role } from "./models/Role.js";
 export { Server } from "./models/Server.js";
+export { ServerBan } from "./models/ServerBan.js";
 export { Category } from "./models/ServerCategory.js";
 export { TextChannel, VoiceChannel } from "./models/ServerChannel.js";
 export { ServerMember } from "./models/ServerMember.js";

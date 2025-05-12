@@ -1,4 +1,11 @@
-import type { User as ApiUser, DataEditUser, DataMessageSend, RelationshipStatus, UserStatus } from "revolt-api";
+import type {
+  User as ApiUser,
+  BannedUser,
+  DataEditUser,
+  DataMessageSend,
+  RelationshipStatus,
+  UserStatus,
+} from "revolt-api";
 
 import type { Client } from "../Client.js";
 import { Permission, U32_MAX, UserPermission } from "../permissions/index.js";
@@ -42,30 +49,26 @@ export enum Relationship {
 export class User extends Base {
   readonly id: string;
   avatar: AutumnFile | null = null;
-  displayName: string;
+  displayName: string = "";
   discriminator: string;
   flags = 0;
   badges = 0;
   username: string;
-  readonly isOnline: boolean = false;
+  isOnline: boolean = false;
   privileged: boolean = false;
   readonly ownerId: string | null = null;
   profile: UserProfile | null = null;
-  status: UserStatus | null;
-  readonly relationship: RelationshipStatus;
+  status: UserStatus | null = null;
+  relationship: RelationshipStatus = "None";
 
-  constructor(client: Client, data: ApiUser) {
+  constructor(client: Client, data: BannedUser | ApiUser) {
     super(client);
     if ("bot" in data) {
       this.ownerId = data.bot?.owner || null;
     }
     this.id = data._id;
-    this.displayName = data.display_name || data.username;
     this.username = data.username;
     this.discriminator = data.discriminator;
-    this.isOnline = data.online || false;
-    this.relationship = data.relationship;
-    this.status = data.status || null;
     this.update(data);
   }
 
@@ -207,6 +210,8 @@ export class User extends Base {
   override update(data: Partial<ApiUser>) {
     if (data.username) this.username = data.username;
     if (data.discriminator) this.discriminator = data.discriminator;
+    if (data.relationship) this.relationship = data.relationship;
+    if (data.online) this.isOnline = data.online;
     if ("avatar" in data) this.avatar = data.avatar ? new AutumnFile(this.client, data.avatar) : null;
     if ("display_name" in data) this.displayName = data.display_name || this.username;
     if ("flags" in data) this.flags = data.flags;

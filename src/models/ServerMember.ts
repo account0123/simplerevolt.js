@@ -1,4 +1,4 @@
-import type { Member as ApiMember } from "revolt-api";
+import type { Member as ApiMember, DataMemberEdit } from "revolt-api";
 
 import { RoleCollection } from "../collections/RoleCollection.js";
 import { Base } from "./Base.js";
@@ -29,11 +29,22 @@ export class ServerMember extends Base {
     this.update(data);
   }
 
+  edit(data: DataMemberEdit) {
+    return this.server.members.edit(this.id, data);
+  }
+
   /**
    * Member's currently hoisted role.
    */
   get hoistedRole() {
     return this.orderedRoles.filter((x) => x.hoist).last() || null;
+  }
+
+  /**
+   * Whether the member is on timeout.
+   */
+  get onTimeout() {
+    return this.timeout ? this.timeout > new Date() : false;
   }
 
   /**
@@ -76,10 +87,12 @@ export class ServerMember extends Base {
     if ("avatar" in data) this.avatar = data.avatar ? new AutumnFile(this.client, data.avatar) : null;
 
     if ("timeout" in data) this.timeout = data.timeout ? new Date(data.timeout) : null;
-
     for (const roleId of data.roles || []) {
+      this.roles.cache.clear();
       const role = this.server.roles.resolve(roleId);
-      if (role) this.roles._add(role);
+      if (role) {
+        this.roles._add(role);
+      }
     }
 
     return this;

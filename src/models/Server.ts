@@ -14,12 +14,17 @@ import { ALLOW_IN_TIMEOUT, Permission, PermissionOverrides } from "../permission
 import { BitField } from "../utils/BitField.js";
 import { ServerInviteCollection } from "../collections/InviteCollection.js";
 import { ServerInviteData } from "./Invite.js";
+import type { ServerMember } from "./ServerMember.js";
+import { ServerBanCollection } from "../collections/ServerBanCollection.js";
+import { User } from "./User.js";
+import { SimpleValidator } from "../utils/SimpleValidator.js";
 
 export class Server extends Base {
   // @ts-ignore unused
   #synced: "partial" | "full" | null = null;
   readonly id: string;
   readonly ownerId: string;
+  readonly bans = new ServerBanCollection(this);
   readonly categories = new ServerCategoryCollection(this);
   readonly channels = new ChannelCollectionInServer(this);
   readonly defaultPermissions: PermissionsBitField;
@@ -41,6 +46,22 @@ export class Server extends Base {
     this.ownerId = data.owner;
     this.name = data.name;
     this.update(data);
+  }
+
+  /**
+   * Ban a user by their id.
+   * @param user User id or instance to ban
+   * @param reason Ban reason - max 1024 characters
+   * @throws TypeError - Invalid reason length
+   * @throws RevoltAPIError
+   */
+  async ban(user: User | string, reason?: string) {
+    if (reason) {
+      SimpleValidator.validateStringLength(reason, "reason", 0, 1024);
+    }
+    const id = this.client.users.resolveId(user);
+    const result = await this.client.api.put(`/servers/${this.id as ""}/bans/${id as ""}`, { reason: reason || null });
+    return result && this.bans.create(result);
   }
 
   calculatePermission() {
@@ -100,12 +121,48 @@ export class Server extends Base {
   }
 
   /**
+   * Fetch all bans on a server.
+   * @throws RevoltAPIError
+   */
+  async fetchBans() {
+    return this.bans.fetch();
+  }
+
+  /**
    * Fetch all server invites.
    * @throws RevoltAPIError
    */
   async fetchInvites() {
     const invites = (await this.client.api.get(`/servers/${this.id as ""}/invites`)) as ServerInviteData[]; // Assuming the API filters server invites
     return invites.map((invite) => this.invites.create(invite));
+  }
+
+  getMember(id: string) {
+    return this.members.resolve(id);
+  }
+
+  /**
+   * Retrieve a member.
+   * @param id User/Member id.
+   * @param roles Whether to include role details.
+   * @param force Whether to force API request.
+   * @throws RevoltAPIError
+   */
+  async fetchMember(id: string, { roles = false, force = false } = {}) {
+    this.members.fetchById(id, roles, { force });
+  }
+
+  /**
+   * Fetch all server members.
+   * @param exclude_offline - Whether to exclude offline members
+   * @throws RevoltAPIError
+   */
+  async fetchMembers(exclude_offline = false) {
+    return this.members.fetch(exclude_offline);
+  }
+
+  kick(member: string | ServerMember) {
+    return this.members.delete(member);
   }
 
   /**
@@ -117,6 +174,15 @@ export class Server extends Base {
 
   resetSyncStatus() {
     this.#synced = null;
+  }
+
+  /**
+   * Search for members by name.
+   * @param query Name to search for.
+   * @throws RevoltAPIError
+   */
+  async searchMembers(query: string) {
+    return this.members.search(query);
   }
 
   override update(data: Partial<ApiServer>) {
@@ -143,5 +209,15 @@ export class Server extends Base {
     }
 
     return this;
+  }
+
+  /**
+   * Remove a user's ban.
+   * @param user User id or instance
+   * @throws RevoltAPIError
+   */
+  unban(user: string | User) {
+    const id = this.client.users.resolveId(user);
+    return this.bans.delete(id);
   }
 }
