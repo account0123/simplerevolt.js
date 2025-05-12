@@ -1,4 +1,4 @@
-import { User as ApiUser, DataEditUser } from "revolt-api";
+import { User as ApiUser, BannedUser, DataEditUser } from "revolt-api";
 
 import type { Client } from "../Client.js";
 import { CachedCollection } from "./DataCollection.js";
@@ -46,11 +46,19 @@ export class UserCollection extends CachedCollection<User> {
   }
 
   /**
-   * Creates and caches an user instance, overwriting any existing user with the same ID.
+   * Creates and caches an user instance.
+   * @param override Whether to override existing user with same id
    */
-  create(data: ApiUser) {
+  create(data: BannedUser | ApiUser, override = true) {
     const instance = new User(this.client, data);
-    this.cache.set(instance.id, instance);
+    if (this.cache.has(instance.id)) {
+      if (override) {
+        this.cache.set(instance.id, instance);
+      }
+    } else {
+      this.cache.set(instance.id, instance);
+    }
+
     return instance;
   }
 
