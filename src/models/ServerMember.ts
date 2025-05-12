@@ -41,6 +41,13 @@ export class ServerMember extends Base {
   }
 
   /**
+   * Whether the member is on timeout.
+   */
+  get onTimeout() {
+    return this.timeout ? this.timeout > new Date() : false;
+  }
+
+  /**
    * Ordered list of roles for this member, from lowest to highest priority.
    */
   get orderedRoles() {
